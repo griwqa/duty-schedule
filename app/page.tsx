@@ -1,15 +1,14 @@
 import Link from 'next/link';
-import { addEmployee, removeEmployee, toggleDuty } from './actions';
+import { addEmployee } from './actions';
+import ScheduleGrid from './schedule-grid';
+import SubmitButton from './submit-button';
 import { query } from '@/lib/db';
-import { SHIFTS } from '@/lib/shifts';
 import {
   addDays,
-  formatDayNumber,
   formatWeekRange,
   fromISODate,
   parseWeekParam,
   toISODate,
-  WEEKDAYS,
   weekDates,
 } from '@/lib/dates';
 
@@ -57,7 +56,7 @@ export default async function Page({
     dbError = error instanceof Error ? error.message : 'Не удалось подключиться к базе данных.';
   }
 
-  const filled = new Set(duties.map((duty) => `${duty.duty_date}|${duty.shift_kind}|${duty.employee_id}`));
+  const filled = duties.map((duty) => `${duty.duty_date}|${duty.shift_kind}|${duty.employee_id}`);
 
   return (
     <main className="page">
@@ -110,9 +109,9 @@ export default async function Page({
                   required
                   aria-label="Имя сотрудника"
                 />
-                <button className="btn btn--primary" type="submit">
+                <SubmitButton className="btn btn--primary" pendingLabel="Добавляем…">
                   Добавить
-                </button>
+                </SubmitButton>
               </form>
             </div>
             {employees.length === 0 ? (
@@ -125,91 +124,7 @@ export default async function Page({
           {employees.length === 0 ? null : (
             <>
               <p className="hint">Нажмите на клетку, чтобы назначить или снять дежурство.</p>
-              <div className="schedule-scroll">
-                <table className="schedule">
-                  <thead>
-                    <tr>
-                      <th rowSpan={2} className="schedule__emp schedule__corner" scope="col">
-                        Сотрудник
-                      </th>
-                      {days.map((date, index) => {
-                        const classes = ['schedule__day'];
-                        if (index >= 5) classes.push('schedule__day--weekend');
-                        if (date === today) classes.push('schedule__day--today');
-                        return (
-                          <th key={date} colSpan={SHIFTS.length} className={classes.join(' ')} scope="col">
-                            <span className="schedule__wd">{WEEKDAYS[index]}</span>
-                            <span className="schedule__date">{formatDayNumber(date)}</span>
-                            {date === today && <span className="schedule__badge">сегодня</span>}
-                          </th>
-                        );
-                      })}
-                    </tr>
-                    <tr>
-                      {days.flatMap((date) =>
-                        SHIFTS.map((shift, shiftIndex) => (
-                          <th
-                            key={`${date}-${shift.kind}`}
-                            className={`schedule__shift ${shiftIndex === 0 ? 'schedule__day-start' : ''}`}
-                            scope="col"
-                          >
-                            {shift.label}
-                          </th>
-                        )),
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.map((employee) => (
-                      <tr key={employee.id}>
-                        <th scope="row" className="schedule__emp">
-                          <div className="schedule__emp-inner">
-                            <span className="schedule__name" title={employee.name}>
-                              {employee.name}
-                            </span>
-                            <form action={removeEmployee.bind(null, employee.id)}>
-                              <button
-                                className="schedule__remove"
-                                type="submit"
-                                aria-label={`Удалить ${employee.name}`}
-                                title="Удалить сотрудника"
-                              >
-                                ×
-                              </button>
-                            </form>
-                          </div>
-                        </th>
-                        {days.flatMap((date) =>
-                          SHIFTS.map((shift, shiftIndex) => {
-                            const on = filled.has(`${date}|${shift.kind}|${employee.id}`);
-                            const classes = ['slot'];
-                            if (shiftIndex === 0) classes.push('slot--day-start');
-                            if (date === today) classes.push('slot--today');
-                            if (on) classes.push('slot--on');
-                            const label = `${on ? 'Снять' : 'Назначить'} ${employee.name} — ${shift.label}, ${formatDayNumber(date)}`;
-
-                            return (
-                              <td key={`${date}-${shift.kind}-${employee.id}`} className={classes.join(' ')}>
-                                <form action={toggleDuty.bind(null, date, shift.kind, employee.id)}>
-                                  <button
-                                    type="submit"
-                                    className="slot__btn"
-                                    aria-pressed={on}
-                                    aria-label={label}
-                                    title={label}
-                                  >
-                                    {on && <span className="slot__dot" aria-hidden="true" />}
-                                  </button>
-                                </form>
-                              </td>
-                            );
-                          }),
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ScheduleGrid employees={employees} days={days} today={today} filled={filled} />
             </>
           )}
         </>
