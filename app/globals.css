@@ -36,12 +36,12 @@ a {
 }
 
 .page {
-  max-width: 1160px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 28px 20px 60px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .topbar {
@@ -161,202 +161,209 @@ a:focus-visible {
   font-size: 14px;
 }
 
-.chips {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--accent-soft);
-  color: #3730a3;
-  border-radius: 999px;
-  padding: 4px 6px 4px 12px;
-  font-size: 14px;
-}
-
-.chip form {
-  display: flex;
-}
-
-.chip__x {
-  border: 0;
-  background: transparent;
-  color: #6366f1;
-  cursor: pointer;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 15px;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-}
-
-.chip__x:hover {
-  background: #e0e3ff;
-  color: var(--danger);
-}
-
-.week-scroll {
+.schedule-scroll {
   overflow-x: auto;
-  padding: 12px 0 4px;
-  margin-top: -12px;
-}
-
-.week {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 10px;
-  min-width: 980px;
-}
-
-.day {
-  position: relative;
-  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 190px;
+  background: var(--surface);
 }
 
-.day--weekend {
-  background: #fbfbfe;
+.schedule {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 1080px;
+  font-size: 13px;
 }
 
-.day--today {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+.schedule th,
+.schedule td {
+  border-bottom: 1px solid var(--border);
 }
 
-.day__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
+.schedule tbody tr:last-child th,
+.schedule tbody tr:last-child td {
+  border-bottom: 0;
 }
 
-.day__wd {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+.schedule__emp {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 200px;
+  min-width: 160px;
+  max-width: 220px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  text-align: left;
+  font-weight: 500;
 }
 
-.day--weekend .day__wd {
-  color: #b45309;
+.schedule thead .schedule__emp {
+  z-index: 3;
 }
 
-.day__date {
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.day__today {
-  position: absolute;
-  top: -9px;
-  right: 10px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 10px;
+.schedule__corner {
+  vertical-align: bottom;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 2px 7px;
-  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
 }
 
-.day__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.schedule__emp-inner {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.duty {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 4px;
-  background: #f6f7fb;
-  border-radius: 8px;
-  padding: 4px 4px 4px 8px;
-  font-size: 13.5px;
-}
-
-.duty__name {
-  flex: 1;
+  gap: 6px;
   min-width: 0;
-  overflow-wrap: break-word;
-  line-height: 1.3;
-  padding-top: 1px;
 }
 
-.duty__x {
+.schedule__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule__remove {
+  flex: none;
+  width: 20px;
+  height: 20px;
   border: 0;
+  border-radius: 6px;
   background: transparent;
   color: #9aa1b2;
   cursor: pointer;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
   line-height: 1;
-  flex: none;
 }
 
-.duty__x:hover {
+.schedule__remove:hover {
   background: #fee4e2;
   color: var(--danger);
 }
 
-.day__add {
-  display: flex;
-  gap: 4px;
+.schedule__day {
+  padding: 8px 4px 5px;
+  text-align: center;
+  background: #fafbff;
 }
 
-.day__add select {
-  flex: 1;
-  min-width: 0;
-  height: 30px;
-  padding: 0 4px;
-  font-size: 12px;
-  border: 1px dashed #cdd0dd;
-  border-radius: 8px;
-  background: #fff;
+.schedule__day + .schedule__day {
+  border-left: 1px solid var(--border);
+}
+
+.schedule__day--weekend {
+  background: #fffaf2;
+}
+
+.schedule__day--today {
+  background: var(--accent-soft);
+  color: #3730a3;
+}
+
+.schedule__wd {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
+  font-weight: 600;
 }
 
-.day__add select:hover {
-  border-color: var(--accent);
-  color: var(--text);
+.schedule__day--weekend .schedule__wd {
+  color: #b45309;
 }
 
-.day__submit {
-  width: 30px;
-  height: 30px;
-  flex: none;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
+.schedule__date {
+  font-weight: 600;
 }
 
-.day__submit:hover {
-  border-color: var(--accent);
+.schedule__badge {
+  display: block;
+  margin-top: 1px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--accent);
+  font-weight: 700;
+}
+
+.schedule__shift {
+  padding: 4px 2px 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: #fbfbfe;
+}
+
+.schedule__day-start {
+  border-left: 1px solid var(--border);
+}
+
+.slot {
+  padding: 0;
+  background: var(--surface);
+  text-align: center;
+}
+
+.slot--today {
+  background: #f8f8ff;
+}
+
+.slot form {
+  margin: 0;
+  height: 100%;
+}
+
+.slot__btn {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.slot__btn:hover {
+  background: #f0f1fa;
+}
+
+.slot__btn:hover::after {
+  content: '+';
+  font-size: 14px;
+  line-height: 1;
+  color: #b9bdd0;
+}
+
+.slot--on .slot__btn {
+  background: var(--accent-soft);
+}
+
+.slot--on .slot__btn:hover {
+  background: #e3e6ff;
+}
+
+.slot--on .slot__btn:hover::after {
+  content: '×';
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.slot--on .slot__btn:hover .slot__dot {
+  display: none;
+}
+
+.slot__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 .notice h2 {

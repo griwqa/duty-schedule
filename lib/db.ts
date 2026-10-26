@@ -3,16 +3,22 @@ import { Pool, type QueryResultRow } from 'pg';
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS employees (
   id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE
+  name TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS shifts (
   id SERIAL PRIMARY KEY,
   duty_date DATE NOT NULL,
-  employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-  UNIQUE (duty_date, employee_id)
+  shift_kind TEXT NOT NULL DEFAULT 'morning',
+  employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE
 );
 
+ALTER TABLE shifts ADD COLUMN IF NOT EXISTS shift_kind TEXT NOT NULL DEFAULT 'morning';
+ALTER TABLE shifts DROP CONSTRAINT IF EXISTS shifts_duty_date_employee_id_key;
+ALTER TABLE employees DROP CONSTRAINT IF EXISTS employees_name_key;
+
+CREATE UNIQUE INDEX IF NOT EXISTS shifts_slot_uniq
+  ON shifts (duty_date, shift_kind, employee_id);
 CREATE INDEX IF NOT EXISTS shifts_duty_date_idx ON shifts (duty_date);
 `;
 

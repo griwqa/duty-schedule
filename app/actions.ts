@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { query } from '@/lib/db';
+import { SHIFT_KINDS, type ShiftKind } from '@/lib/shifts';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -14,7 +15,7 @@ export async function addEmployee(formData: FormData) {
     return;
   }
 
-  await query('INSERT INTO employees (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
+  await query('INSERT INTO employees (name) VALUES ($1)', [name]);
   revalidatePath('/');
 }
 
@@ -27,25 +28,28 @@ export async function removeEmployee(employeeId: number) {
   revalidatePath('/');
 }
 
-export async function assignDuty(date: string, formData: FormData) {
-  const employeeId = Number(formData.get('employeeId'));
-
-  if (!ISO_DATE.test(date) || !Number.isInteger(employeeId)) {
+export async function toggleDuty(date: string, shiftKind: string, employeeId: number) {
+  if (
+    !ISO_DATE.test(date) ||
+    !SHIFT_KINDS.includes(shiftKind as ShiftKind) ||
+    !Number.isInteger(employeeId)
+  ) {
     return;
   }
 
-  await query(
-    'INSERT INTO shifts (duty_date, employee_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-    [date, employeeId],
+  const removed = await query(
+    'DELETE FROM shifts WHERE duty_date = $1 AND shift_kind = $2 AND employee_id = $3',
+    [date, shiftKind, employeeId],
   );
-  revalidatePath('/');
-}
 
-export async function removeDuty(date: string, employeeId: number) {
-  if (!ISO_DATE.test(date) || !Number.isInteger(employeeId)) {
-    return;
+  if (removed.rowCount === 0) {
+    await query(
+      `INSERT INTO shifts (duty_date, shift_kind, employee_id)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (duty_date, shift_kind, employee_id) DO NOTHING`,
+      [date, shiftKind, employeeId],
+    );
   }
 
-  await query('DELETE FROM shifts WHERE duty_date = $1 AND employee_id = $2', [date, employeeId]);
   revalidatePath('/');
 }
