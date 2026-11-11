@@ -667,6 +667,11 @@ body.busy {
   background: #ffc7ce;
 }
 
+.stats-table tr.stats-total td {
+  background: #eef2f7;
+  font-weight: 700;
+}
+
 .stats-summary {
   margin: 10px 0 0;
   font-size: 12.5px;
@@ -719,6 +724,7 @@ body.is-locked .app-footer {
 }
 
 body.view-mode #btn-settings,
+body.view-mode #btn-rates,
 body.view-mode #btn-calendar,
 body.view-mode #btn-add,
 body.view-mode #btn-redistribute,

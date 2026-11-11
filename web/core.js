@@ -35,6 +35,14 @@ export const DEFAULT_NAMES = ["Инженер A", "Инженер B", "Инже�
 
 const DUTY_SHIFTS = new Set([SHIFT.NIGHT, SHIFT.DAILY]);
 
+const DUPLICATE_SHIFTS = [
+  SHIFT.MORNING,
+  SHIFT.DAY,
+  SHIFT.EVENING,
+  SHIFT.NIGHT,
+  SHIFT.DAILY,
+];
+
 export const FIVE_DAY_BASE_SHIFTS = new Set([
   SHIFT.OFFICE,
   SHIFT.REMOTE,
@@ -43,6 +51,7 @@ export const FIVE_DAY_BASE_SHIFTS = new Set([
 
 export const FIVE_DAY_DUTY_SHIFTS = new Set([
   SHIFT.MORNING,
+  SHIFT.DAY,
   SHIFT.EVENING,
   SHIFT.NIGHT,
 ]);
@@ -253,6 +262,9 @@ export function createEngineer(name, role = ROLE.DUTY, position = "", phone = ""
     totalHours: 0,
     nightCount: 0,
     dailyCount: 0,
+    morningCount: 0,
+    dayCount: 0,
+    eveningCount: 0,
     vacationDays: 0,
     officeCount: 0,
     remoteCount: 0,
@@ -269,6 +281,9 @@ export function recalculateEngineer(
   engineer.totalHours = 0;
   engineer.nightCount = 0;
   engineer.dailyCount = 0;
+  engineer.morningCount = 0;
+  engineer.dayCount = 0;
+  engineer.eveningCount = 0;
   engineer.vacationDays = 0;
   engineer.officeCount = 0;
   engineer.remoteCount = 0;
@@ -281,6 +296,12 @@ export function recalculateEngineer(
       } else if (shift === SHIFT.DAILY) {
         engineer.dailyCount += 1;
         engineer.totalHours += dailyHours;
+      } else if (shift === SHIFT.MORNING) {
+        engineer.morningCount += 1;
+      } else if (shift === SHIFT.DAY) {
+        engineer.dayCount += 1;
+      } else if (shift === SHIFT.EVENING) {
+        engineer.eveningCount += 1;
       } else if (shift === SHIFT.VACATION) {
         engineer.vacationDays += 1;
       } else if (shift === SHIFT.OFFICE) {
@@ -670,9 +691,9 @@ export function validateSchedule(engineers) {
   const issues = [];
   const issueDays = new Set();
   const duty = engineers.filter((engineer) => engineer.role === ROLE.DUTY);
-  if (!duty.length) return { issues, issueDays };
+  if (!engineers.length) return { issues, issueDays };
 
-  const days = duty[0].shifts.length;
+  const days = engineers[0].shifts.length;
   for (let i = 0; i < days; i += 1) {
     const onDuty = duty.filter((engineer) =>
       DUTY_SHIFTS.has(engineer.shifts[i]),
@@ -680,6 +701,32 @@ export function validateSchedule(engineers) {
     if (onDuty.length > 1) {
       issueDays.add(i + 1);
       issues.push(`день ${i + 1}: на смене ${onDuty.length} чел.`);
+    }
+  }
+
+  for (let i = 0; i < days; i += 1) {
+    const holders = new Map();
+    for (const engineer of engineers) {
+      const parts = new Set(splitShift(engineer.shifts[i]));
+      for (const code of DUPLICATE_SHIFTS) {
+        if (!parts.has(code)) continue;
+        if (!holders.has(code)) holders.set(code, []);
+        holders.get(code).push(engineer);
+      }
+    }
+    for (const code of DUPLICATE_SHIFTS) {
+      const list = holders.get(code);
+      if (!list || list.length < 2) continue;
+      const coveredByDutyCheck =
+        DUTY_SHIFTS.has(code) &&
+        list.every((engineer) => engineer.role === ROLE.DUTY);
+      if (coveredByDutyCheck) continue;
+      issueDays.add(i + 1);
+      issues.push(
+        `день ${i + 1}: дежурство ${code} у ${list.length} чел. — ${list
+          .map((engineer) => engineer.name)
+          .join(", ")}`,
+      );
     }
   }
 

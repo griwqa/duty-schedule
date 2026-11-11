@@ -86,6 +86,7 @@ const CELL_OPTIONS = {
   [ROLE.DUTY]: [
     [SHIFT.DAILY, "Суточная (С)"],
     [SHIFT.NIGHT, "Ночная (Н)"],
+    [SHIFT.DAY, "День (Д)"],
     [SHIFT.OFFICE, "Офис (о)"],
     [SHIFT.REMOTE, "Удалёнка (у)"],
     [SHIFT.TRIP, "Выезд (в)"],
@@ -104,6 +105,7 @@ const CELL_OPTIONS = {
     [SHIFT.REMOTE, "Удалёнка (у)"],
     [SHIFT.TRIP, "Выезд (в)"],
     [SHIFT.MORNING, "Утро (У)"],
+    [SHIFT.DAY, "День (Д)"],
     [SHIFT.EVENING, "Вечер (В)"],
     [SHIFT.NIGHT, "Ночная (Н)"],
     [SHIFT.VACATION, "Отпуск (Отп)"],
@@ -120,6 +122,7 @@ const ROLE_SHIFT_SETS = {
     SHIFT.OFF,
     SHIFT.DAILY,
     SHIFT.NIGHT,
+    SHIFT.DAY,
     SHIFT.OFFICE,
     SHIFT.REMOTE,
     SHIFT.TRIP,
@@ -131,6 +134,7 @@ const ROLE_SHIFT_SETS = {
     SHIFT.REMOTE,
     SHIFT.TRIP,
     SHIFT.MORNING,
+    SHIFT.DAY,
     SHIFT.EVENING,
     SHIFT.NIGHT,
     SHIFT.VACATION,
@@ -185,6 +189,16 @@ function clampNumber(value, min, max, fallback) {
 function formatNumber(value) {
   const rounded = Math.round(value * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(
+    Math.round((Number(value) || 0) * 100) / 100,
+  );
+}
+
+function formatRate(value) {
+  return String(Math.round((Number(value) || 0) * 100) / 100);
 }
 
 function formatSigned(value) {
@@ -256,6 +270,18 @@ async function matchesViewPassword(password) {
   return hash === stored.hash;
 }
 
+const DEFAULT_SHIFT_RATES = { morning: 0, day: 0, evening: 0, night: 0 };
+
+function normalizeShiftRates(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  return {
+    morning: clampNumber(source.morning, 0, 1_000_000, 0),
+    day: clampNumber(source.day, 0, 1_000_000, 0),
+    evening: clampNumber(source.evening, 0, 1_000_000, 0),
+    night: clampNumber(source.night, 0, 1_000_000, 0),
+  };
+}
+
 function defaultSettings() {
   const now = new Date();
   return {
@@ -270,6 +296,7 @@ function defaultSettings() {
     dutyCount: 4,
     extraCount: 0,
     viewPassword: null,
+    shiftRates: { ...DEFAULT_SHIFT_RATES },
   };
 }
 
@@ -305,6 +332,7 @@ function normalizeSettings(raw, staff) {
   settings.dutyCount = clampInt(settings.dutyCount, 2, MAX_DUTY, 4);
   settings.extraCount = clampInt(settings.extraCount, 0, MAX_EXTRA, 0);
   settings.viewPassword = normalizeViewPassword(settings.viewPassword);
+  settings.shiftRates = normalizeShiftRates(settings.shiftRates);
   if (staff) {
     settings.dutyCount = Math.max(2, countRole(staff, ROLE.DUTY));
     settings.extraCount = countRole(staff, ROLE.EXTRA);
@@ -350,6 +378,7 @@ function cacheElements() {
   const ids = [
     "btn-export",
     "btn-settings",
+    "btn-rates",
     "btn-calendar",
     "btn-add",
     "btn-redistribute",
@@ -401,6 +430,13 @@ function cacheElements() {
     "set-daily",
     "set-workday",
     "set-cancel",
+    "rates-dialog",
+    "rates-form",
+    "rate-morning",
+    "rate-day",
+    "rate-evening",
+    "rate-night",
+    "rates-cancel",
     "redistribute-dialog",
     "redistribute-form",
     "redistribute-date",
@@ -1014,6 +1050,7 @@ function setControlsReadOnly(readOnly) {
   }
   for (const button of [
     els.btnSettings,
+    els.btnRates,
     els.btnCalendar,
     els.btnAdd,
     els.btnRedistribute,
@@ -1508,7 +1545,7 @@ function renderSchedule(issueDays) {
     const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
     const title = [
       holiday ? "Праздничный день" : "",
-      issue ? "Проверьте покрытие дня или смены подряд" : "",
+      issue ? "Проверьте покрытие дня, дубли дежурств или смены подряд" : "",
     ]
       .filter(Boolean)
       .join(". ");
@@ -1586,47 +1623,99 @@ function renderSchedule(issueDays) {
   }
 }
 
+function engineerShiftPay(engineer) {
+  const rates = normalizeShiftRates(state.settings.shiftRates);
+  return (
+    (Number(engineer.morningCount) || 0) * rates.morning +
+    (Number(engineer.dayCount) || 0) * rates.day +
+    (Number(engineer.eveningCount) || 0) * rates.evening +
+    (Number(engineer.nightCount) || 0) * rates.night
+  );
+}
+
 function renderStats() {
   const schedule = state.schedule;
   const engineers = engineerStats(schedule.engineers);
   const norm = schedule.normHours;
   if (!engineers.length) {
     els.statsBody.innerHTML =
-      '<tr><td colspan="8" class="loading-cell">Нет сотрудников для статистики.</td></tr>';
+      '<tr><td colspan="12" class="loading-cell">Нет сотрудников для статистики.</td></tr>';
     els.statsSummary.textContent = "";
     return;
   }
 
+  const totals = {
+    morning: 0,
+    day: 0,
+    evening: 0,
+    night: 0,
+    daily: 0,
+    vacation: 0,
+    five: 0,
+  };
   let total = 0;
+  let totalOvertime = 0;
+  let totalPay = 0;
   let html = "";
   for (const engineer of engineers) {
     const overtime = engineer.totalHours - norm;
     const color = Math.abs(overtime) <= 2 ? "ok" : overtime > 2 ? "bad" : "warn";
+    const five = engineer.officeCount + engineer.remoteCount + engineer.tripCount;
+    const pay = engineerShiftPay(engineer);
+    totals.morning += engineer.morningCount;
+    totals.day += engineer.dayCount;
+    totals.evening += engineer.eveningCount;
+    totals.night += engineer.nightCount;
+    totals.daily += engineer.dailyCount;
+    totals.vacation += engineer.vacationDays;
+    totals.five += five;
     total += engineer.totalHours;
+    totalOvertime += Number(engineer.overtimeTotal) || 0;
+    totalPay += pay;
     html += "<tr>";
     html += `<td>${esc(engineer.name)}</td>`;
+    html += `<td>${engineer.morningCount}</td>`;
+    html += `<td>${engineer.dayCount}</td>`;
+    html += `<td>${engineer.eveningCount}</td>`;
     html += `<td>${engineer.nightCount}</td>`;
     html += `<td>${engineer.dailyCount}</td>`;
     html += `<td>${engineer.vacationDays}</td>`;
-    html += `<td>${engineer.officeCount + engineer.remoteCount + engineer.tripCount}</td>`;
+    html += `<td>${five}</td>`;
     html += `<td class="${color}"><b>${Math.round(engineer.totalHours)}</b></td>`;
     html += `<td>${formatNumber(engineer.overtimeTotal || 0)}</td>`;
     html += `<td class="${color}"><b>${formatSigned(overtime)}</b></td>`;
+    html += `<td>${formatMoney(pay)}</td>`;
     html += "</tr>";
   }
-  els.statsBody.innerHTML = html;
   const deviation = total - norm * engineers.length;
+  html +=
+    '<tr class="stats-total">' +
+    "<td>Итого</td>" +
+    `<td>${totals.morning}</td>` +
+    `<td>${totals.day}</td>` +
+    `<td>${totals.evening}</td>` +
+    `<td>${totals.night}</td>` +
+    `<td>${totals.daily}</td>` +
+    `<td>${totals.vacation}</td>` +
+    `<td>${totals.five}</td>` +
+    `<td><b>${Math.round(total)}</b></td>` +
+    `<td>${formatNumber(totalOvertime)}</td>` +
+    `<td><b>${formatSigned(deviation)}</b></td>` +
+    `<td>${formatMoney(totalPay)}</td>` +
+    "</tr>";
+  els.statsBody.innerHTML = html;
   els.statsSummary.innerHTML =
     `Норма месяца: <b>${Math.round(norm)} ч</b> &nbsp;·&nbsp; ` +
     `Итого: <b>${Math.round(total)} ч</b> &nbsp;·&nbsp; ` +
-    `Отклонение от нормы: <b>${formatSigned(deviation)} ч</b>`;
+    `Отклонение от нормы: <b>${formatSigned(deviation)} ч</b> &nbsp;·&nbsp; ` +
+    `Доплата по тарифам: <b>${formatMoney(totalPay)} ₽</b>`;
 }
 
 function renderValidation(validation) {
   if (!validation.issues.length) {
     els.validation.className = "validation ok";
     els.validation.textContent =
-      "Замечаний нет: нет двух дежурных в один день и смен подряд.";
+      "Замечаний нет: нет двух дежурных в один день, дублей дежурств и смен подряд.";
     return;
   }
   els.validation.className = "validation has-issues";
@@ -1659,7 +1748,7 @@ function renderConditions() {
       "перерыв на обед 1 ч · ночной перерыв — от 30 мин до 2 ч (ст. 108 ТК РФ).";
   }
   if (five) {
-    text += ` 5-дневных сотрудников: ${five} — офис, удалёнка, выезд или дежурство У / В / Н; совмещённый день показывается как о/В.`;
+    text += ` 5-дневных сотрудников: ${five} — офис, удалёнка, выезд или дежурство У / Д / В / Н; совмещённый день показывается как о/В.`;
   }
   if (extra) {
     text += ` Доп. инженеров: ${extra} — У / Д / В ставятся вручную.`;
@@ -1667,7 +1756,8 @@ function renderConditions() {
   text +=
     " Отпуск — Отп." +
     (state.settings.useHolidays ? " Праздничные дни обведены красной рамкой." : "") +
-    " Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника.";
+    " Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника." +
+    " Тарифы У / Д / В / Н задаются кнопкой «Тарифы» и дают колонку «Доплата».";
   els.conditions.textContent = text;
 }
 
@@ -2448,6 +2538,35 @@ async function onSettingsSubmit(event) {
   toast("Часы смен обновлены: статистика пересчитана, график не изменён.", "success");
 }
 
+function openRatesDialog() {
+  if (state.readOnly) return;
+  const rates = normalizeShiftRates(state.settings.shiftRates);
+  els.rateMorning.value = formatRate(rates.morning);
+  els.rateDay.value = formatRate(rates.day);
+  els.rateEvening.value = formatRate(rates.evening);
+  els.rateNight.value = formatRate(rates.night);
+  els.ratesDialog.showModal();
+}
+
+function onRatesSubmit(event) {
+  event.preventDefault();
+  if (state.readOnly) {
+    els.ratesDialog.close();
+    return;
+  }
+  state.settings.shiftRates = normalizeShiftRates({
+    morning: els.rateMorning.value,
+    day: els.rateDay.value,
+    evening: els.rateEvening.value,
+    night: els.rateNight.value,
+  });
+  els.ratesDialog.close();
+  renderAll();
+  markNeonDirty();
+  writeStorage();
+  toast("Тарифы обновлены: доплата в статистике пересчитана.", "success");
+}
+
 function exportExcel() {
   const schedule = state.schedule;
   if (!schedule || !schedule.engineers.length) {
@@ -2512,15 +2631,11 @@ function exportExcel() {
   }
   html += "</tr></table>";
 
-  html +=
-    `</td><td style="border:none;width:24px;"></td>` +
-    `<td style="border:none;vertical-align:top;">` +
-    "<table>" +
-    `<tr><td colspan="8" style="border:none;text-align:left;font-family:Calibri,Arial,sans-serif;font-size:11pt;font-weight:bold;">Статистика</td></tr>`;
-
-  const statsHeader = `${base}background:#D9E1F2;font-weight:bold;`;
   const statsHeaders = [
     "Инженер",
+    "Утро",
+    "День",
+    "Вечер",
     "Ночных",
     "Суточных",
     "Отпуск",
@@ -2528,30 +2643,87 @@ function exportExcel() {
     "Часов",
     "Переработка",
     "Отклонение",
+    "Доплата, ₽",
   ];
+  html +=
+    `</td><td style="border:none;width:24px;"></td>` +
+    `<td style="border:none;vertical-align:top;">` +
+    "<table>" +
+    `<tr><td colspan="${statsHeaders.length}" style="border:none;text-align:left;font-family:Calibri,Arial,sans-serif;font-size:11pt;font-weight:bold;">Статистика</td></tr>`;
+
+  const statsHeader = `${base}background:#D9E1F2;font-weight:bold;`;
   html += "<tr>";
   for (const label of statsHeaders) {
     html += `<td style="${statsHeader}">${label}</td>`;
   }
   html += "</tr>";
 
+  const totals = {
+    morning: 0,
+    day: 0,
+    evening: 0,
+    night: 0,
+    daily: 0,
+    vacation: 0,
+    five: 0,
+    hours: 0,
+    overtime: 0,
+    deviation: 0,
+    pay: 0,
+  };
   for (const engineer of engineerStats(schedule.engineers)) {
     const overtime = engineer.totalHours - schedule.normHours;
+    const five = engineer.officeCount + engineer.remoteCount + engineer.tripCount;
+    const pay = engineerShiftPay(engineer);
+    totals.morning += engineer.morningCount;
+    totals.day += engineer.dayCount;
+    totals.evening += engineer.eveningCount;
+    totals.night += engineer.nightCount;
+    totals.daily += engineer.dailyCount;
+    totals.vacation += engineer.vacationDays;
+    totals.five += five;
+    totals.hours += engineer.totalHours;
+    totals.overtime += engineer.overtimeTotal || 0;
+    totals.deviation += overtime;
+    totals.pay += pay;
     const values = [
       engineer.name,
+      engineer.morningCount,
+      engineer.dayCount,
+      engineer.eveningCount,
       engineer.nightCount,
       engineer.dailyCount,
       engineer.vacationDays,
-      engineer.officeCount + engineer.remoteCount + engineer.tripCount,
+      five,
       engineer.totalHours,
       engineer.overtimeTotal || 0,
       overtime,
+      Math.round(pay),
     ];
     for (const value of values) {
       html += `<td style="${base}">${esc(typeof value === "number" ? Math.round(value) : value)}</td>`;
     }
     html += "</tr>";
   }
+  const totalValues = [
+    "Итого",
+    totals.morning,
+    totals.day,
+    totals.evening,
+    totals.night,
+    totals.daily,
+    totals.vacation,
+    totals.five,
+    totals.hours,
+    totals.overtime,
+    totals.deviation,
+    Math.round(totals.pay),
+  ];
+  html += "<tr>";
+  for (const value of totalValues) {
+    html += `<td style="${statsHeader}">${esc(typeof value === "number" ? Math.round(value) : value)}</td>`;
+  }
+  html += "</tr>";
   html += "</table></td></tr></table></body></html>";
 
   const blob = new Blob(["\ufeff", html], {
@@ -2610,6 +2782,7 @@ async function importCalendar(file) {
 function bindEvents() {
   els.btnExport.addEventListener("click", exportExcel);
   els.btnSettings.addEventListener("click", openSettingsDialog);
+  els.btnRates.addEventListener("click", openRatesDialog);
   els.btnAdd.addEventListener("click", () => openEngineerModal(null));
   els.btnRedistribute.addEventListener("click", openRedistributeDialog);
   els.redistributeForm.addEventListener("submit", onRedistributeSubmit);
@@ -2831,6 +3004,8 @@ function bindEvents() {
 
   els.settingsForm.addEventListener("submit", onSettingsSubmit);
   els.setCancel.addEventListener("click", () => els.settingsDialog.close());
+  els.ratesForm.addEventListener("submit", onRatesSubmit);
+  els.ratesCancel.addEventListener("click", () => els.ratesDialog.close());
 
   els.btnAccess.addEventListener("click", openAccessDialog);
   els.loginForm.addEventListener("submit", onLoginSubmit);

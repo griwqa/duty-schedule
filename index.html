@@ -23,6 +23,7 @@
       <div class="toolbar">
         <button class="btn" id="btn-export" type="button">Экспорт в Excel</button>
         <button class="btn" id="btn-settings" type="button">Настройки смен</button>
+        <button class="btn" id="btn-rates" type="button">Тарифы</button>
         <button class="btn" id="btn-calendar" type="button">Загрузить календарь</button>
         <button class="btn" id="btn-access" type="button">Пароль просмотра</button>
         <label class="field field--month">
@@ -92,6 +93,9 @@
           <thead>
             <tr>
               <th>Инженер</th>
+              <th>Утро</th>
+              <th>День</th>
+              <th>Вечер</th>
               <th>Ночных</th>
               <th>Суточных</th>
               <th>Отпуск</th>
@@ -99,6 +103,7 @@
               <th>Часов</th>
               <th>Переработка</th>
               <th>Отклонение</th>
+              <th>Доплата, ₽</th>
             </tr>
           </thead>
           <tbody id="stats-body"></tbody>
@@ -281,6 +286,34 @@
       <div class="dialog-actions">
         <span class="spacer"></span>
         <button class="btn" id="set-cancel" type="button">Отмена</button>
+        <button class="btn btn-primary" type="submit">Применить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog dialog--narrow" id="rates-dialog">
+    <form id="rates-form">
+      <h2>Тарифы дежурств</h2>
+      <p class="dialog-hint">Ставка за одну смену в рублях. Доплата в статистике = количество смен × ставка.</p>
+      <label class="field">
+        <span>Утро (У), ₽ за смену</span>
+        <input id="rate-morning" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>День (Д), ₽ за смену</span>
+        <input id="rate-day" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>Вечер (В), ₽ за смену</span>
+        <input id="rate-evening" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>Ночь (Н), ₽ за смену</span>
+        <input id="rate-night" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+      </label>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="rates-cancel" type="button">Отмена</button>
         <button class="btn btn-primary" type="submit">Применить</button>
       </div>
     </form>
