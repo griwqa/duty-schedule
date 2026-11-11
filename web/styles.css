@@ -176,14 +176,6 @@ body.busy {
   background: #fee2e2;
 }
 
-.params {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 12px 14px;
-  margin-top: 14px;
-}
-
 .field {
   display: flex;
   flex-direction: column;
@@ -545,6 +537,10 @@ body.busy {
   margin-top: 12px;
 }
 
+.schedule-actions .check {
+  padding-bottom: 0;
+}
+
 .hint {
   color: #6b7280;
   font-size: 11.5px;
@@ -573,12 +569,6 @@ body.busy {
 .validation ul {
   margin: 6px 0 0;
   padding-left: 20px;
-}
-
-.validation-action {
-  margin-top: 8px;
-  padding: 6px 11px;
-  font-size: 12px;
 }
 
 .legend {
@@ -731,14 +721,13 @@ body.is-locked .app-footer {
 body.view-mode #btn-settings,
 body.view-mode #btn-calendar,
 body.view-mode #btn-add,
+body.view-mode #btn-redistribute,
 body.view-mode #btn-access,
 body.view-mode .schedule-actions .hint {
   display: none;
 }
 
-body.view-mode .params input,
-body.view-mode .params select,
-body.view-mode .params .check input,
+body.view-mode .schedule-actions .check input,
 body.view-mode .toolbar input,
 body.view-mode .toolbar select {
   pointer-events: none;
@@ -1063,16 +1052,16 @@ body.view-mode .shift-cell {
     margin-left: 0;
   }
 
-  .params {
-    gap: 10px;
-  }
-
   .field--month select {
     width: 190px;
   }
 
   .check {
     padding-bottom: 0;
+  }
+
+  .schedule-actions .hint {
+    flex: 1 1 100%;
   }
 
   .app-footer {

@@ -1607,20 +1607,17 @@ function renderStats() {
 }
 
 function renderValidation(validation) {
-  const action = state.readOnly
-    ? ""
-    : '<button class="btn validation-action js-redistribute" type="button">Перераспределить смены суточников</button>';
   if (!validation.issues.length) {
     els.validation.className = "validation ok";
-    els.validation.innerHTML =
-      `<span>Замечаний нет: нет двух дежурных в один день и смен подряд.</span>${action}`;
+    els.validation.textContent =
+      "Замечаний нет: нет двух дежурных в один день и смен подряд.";
     return;
   }
   els.validation.className = "validation has-issues";
   els.validation.innerHTML =
-    `<span>Замечания (${validation.issues.length}):</span>` +
-    `<ul>${validation.issues.map((issue) => `<li>${esc(issue)}</li>`).join("")}</ul>` +
-    action;
+    `Замечания (${validation.issues.length}):<ul>` +
+    validation.issues.map((issue) => `<li>${esc(issue)}</li>`).join("") +
+    "</ul>";
 }
 
 function renderConditions() {
@@ -2447,7 +2444,13 @@ function exportExcel() {
     "border:1px solid #999999;text-align:center;vertical-align:middle;font-family:Calibri,Arial,sans-serif;font-size:11pt;";
   const header = `${base}background:#305496;color:#FFFFFF;font-weight:bold;`;
 
-  let html = `<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;} td{height:24px;}</style></head><body><table><tr><td style="${header}">Инженер</td>`;
+  let html =
+    `<html><head><meta charset="utf-8">` +
+    "<style>table{border-collapse:collapse;} td{height:24px;}</style>" +
+    `</head><body>` +
+    `<table><tr><td style="border:none;vertical-align:top;">` +
+    "<table><tr>" +
+    `<td style="${header}">Инженер</td>`;
   for (let day = 1; day <= total; day += 1) {
     html += `<td style="${header}">${day}</td>`;
   }
@@ -2491,10 +2494,13 @@ function exportExcel() {
         : `${base}font-weight:bold;`;
     html += `<td style="${style}">${dow}</td>`;
   }
-  html += "</tr>";
+  html += "</tr></table>";
 
-  html += `<tr><td style="border:none;height:12px;" colspan="${total + 1}"></td></tr>`;
-  html += `<tr><td style="border:none;font-family:Calibri,Arial,sans-serif;font-size:11pt;font-weight:bold;" colspan="${total + 1}">Статистика</td></tr>`;
+  html +=
+    `</td><td style="border:none;width:24px;"></td>` +
+    `<td style="border:none;vertical-align:top;">` +
+    "<table>" +
+    `<tr><td colspan="8" style="border:none;text-align:left;font-family:Calibri,Arial,sans-serif;font-size:11pt;font-weight:bold;">Статистика</td></tr>`;
 
   const statsHeader = `${base}background:#D9E1F2;font-weight:bold;`;
   const statsHeaders = [
@@ -2530,7 +2536,7 @@ function exportExcel() {
     }
     html += "</tr>";
   }
-  html += "</table></body></html>";
+  html += "</table></td></tr></table></body></html>";
 
   const blob = new Blob(["\ufeff", html], {
     type: "application/vnd.ms-excel;charset=utf-8",
@@ -2598,9 +2604,6 @@ function bindEvents() {
     const button = event.target.closest("button[data-move]");
     if (!button) return;
     moveRedistribute(Number(button.dataset.index), button.dataset.move);
-  });
-  els.validation.addEventListener("click", (event) => {
-    if (event.target.closest(".js-redistribute")) openRedistributeDialog();
   });
   els.btnCalendar.addEventListener("click", () => {
     els.calendarFile.value = "";
