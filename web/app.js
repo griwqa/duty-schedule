@@ -25,8 +25,6 @@ import {
   neonConfigured,
   neonLoadSchedule,
   neonSaveSchedule,
-  normalizeAuthUrl,
-  normalizeDataApiUrl,
   readNeonConfig,
   writeNeonConfig,
 } from "./neon.js";
@@ -48,6 +46,7 @@ const MONTHS_RU = [
 
 const DOW_RU = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const STORAGE_KEY = "grafik-web-v1";
+const ACCESS_ITERATIONS = 150000;
 const MAX_DUTY = 20;
 const MAX_EXTRA = 20;
 const MODE_ROTATION = "rotation";
@@ -200,6 +199,63 @@ function formatStamp(value) {
   return `${pad2(date.getDate())}.${pad2(date.getMonth() + 1)} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
+function bytesToHex(bytes) {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+function randomSaltHex() {
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  return bytesToHex(salt);
+}
+
+async function hashPassword(password, saltHex) {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error("Браузер не поддерживает проверку пароля (нужен HTTPS).");
+  }
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: hexToBytes(saltHex),
+      iterations: ACCESS_ITERATIONS,
+      hash: "SHA-256",
+    },
+    key,
+    256,
+  );
+  return bytesToHex(new Uint8Array(bits));
+}
+
+function normalizeViewPassword(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const salt = typeof raw.salt === "string" ? raw.salt.toLowerCase() : "";
+  const hash = typeof raw.hash === "string" ? raw.hash.toLowerCase() : "";
+  if (!/^[0-9a-f]{32}$/.test(salt) || !/^[0-9a-f]{64}$/.test(hash)) return null;
+  return { salt, hash };
+}
+
+async function matchesViewPassword(password) {
+  const stored = state.settings.viewPassword;
+  if (!stored || !password) return false;
+  const hash = await hashPassword(password, stored.salt);
+  return hash === stored.hash;
+}
+
 function defaultSettings() {
   const now = new Date();
   return {
@@ -213,6 +269,7 @@ function defaultSettings() {
     workdayHours: 8,
     dutyCount: 4,
     extraCount: 0,
+    viewPassword: null,
   };
 }
 
@@ -247,6 +304,7 @@ function normalizeSettings(raw, staff) {
   settings.workdayHours = clampNumber(settings.workdayHours, 1, 24, 8);
   settings.dutyCount = clampInt(settings.dutyCount, 2, MAX_DUTY, 4);
   settings.extraCount = clampInt(settings.extraCount, 0, MAX_EXTRA, 0);
+  settings.viewPassword = normalizeViewPassword(settings.viewPassword);
   if (staff) {
     settings.dutyCount = Math.max(2, countRole(staff, ROLE.DUTY));
     settings.extraCount = countRole(staff, ROLE.EXTRA);
@@ -271,6 +329,8 @@ const state = {
   neonReady: false,
   neonError: "",
   neonTimer: 0,
+  neonReadOk: false,
+  neonSnapshot: null,
   revision: 0,
   navToken: 0,
   generation: null,
@@ -280,6 +340,8 @@ const state = {
   dropCell: null,
   busy: false,
   fetchFailed: false,
+  readOnly: false,
+  accessRole: "",
 };
 
 const els = {};
@@ -342,16 +404,22 @@ function cacheElements() {
     "set-daily",
     "set-workday",
     "set-cancel",
-    "neon-dialog",
-    "neon-form",
-    "neon-data-url",
-    "neon-auth-url",
-    "neon-password",
-    "neon-autosave",
-    "neon-status",
-    "neon-load",
-    "neon-save",
-    "neon-close",
+    "btn-access",
+    "mode-badge",
+    "login-dialog",
+    "login-form",
+    "login-password",
+    "login-status",
+    "login-close",
+    "access-dialog",
+    "access-form",
+    "access-password",
+    "access-password2",
+    "access-disable",
+    "access-status",
+    "access-cancel",
+    "lock-screen",
+    "lock-enter",
   ];
   for (const id of ids) {
     const key = id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -381,6 +449,7 @@ function updateStatus() {
     return;
   }
   const parts = [];
+  if (state.accessRole === "view") parts.push("режим просмотра");
   if (state.source === "neon") {
     parts.push(state.neonSaving ? "запись в Neon…" : "источник: Neon");
     if (state.neonUpdatedAt) parts.push(formatStamp(state.neonUpdatedAt));
@@ -528,58 +597,190 @@ function hasManualSchedules() {
   return Object.values(state.schedules).some((saved) => saved?.manual);
 }
 
-function refreshNeonDialog() {
-  if (!els.neonStatus) return;
-  const config = state.neon;
-  const lines = [];
-  if (!neonConfigured(config)) {
-    lines.push("Укажите Data API URL и Auth URL из Neon Console.");
+function clearNeonTimer() {
+  if (state.neonTimer) {
+    window.clearTimeout(state.neonTimer);
+    state.neonTimer = 0;
+  }
+}
+
+function lockApp({ farewell = true } = {}) {
+  clearNeonTimer();
+  state.readOnly = true;
+  state.accessRole = "";
+  state.neon.password = "";
+  writeNeonConfig(state.neon);
+  closeCellMenu();
+  if (els.modeBadge) els.modeBadge.hidden = true;
+  setControlsReadOnly(true);
+  document.body.classList.add("is-locked");
+  document.body.classList.remove("view-mode");
+  if (els.lockScreen) els.lockScreen.hidden = false;
+  updateStatus();
+  if (farewell) toast("До новых встреч!", "info", 5000);
+}
+
+function unlockApp(role) {
+  state.accessRole = role;
+  state.readOnly = role !== "edit";
+  if (state.readOnly) {
+    clearNeonTimer();
+    state.neon.password = "";
+    writeNeonConfig(state.neon);
+    state.neonDirty = false;
+  }
+  document.body.classList.remove("is-locked");
+  document.body.classList.toggle("view-mode", state.readOnly);
+  if (els.lockScreen) els.lockScreen.hidden = true;
+  if (els.modeBadge) els.modeBadge.hidden = !state.readOnly;
+  setControlsReadOnly(state.readOnly);
+  els.loginDialog.close();
+  syncControls();
+  renderAll();
+  updateStatus();
+}
+
+function openLoginDialog() {
+  if (!els.loginDialog) return;
+  els.loginPassword.value = "";
+  els.loginStatus.textContent = state.settings.viewPassword
+    ? "Введите пароль редактирования или пароль просмотра."
+    : "Введите общий пароль для редактирования.";
+  if (!els.loginDialog.open) els.loginDialog.showModal();
+  window.setTimeout(() => els.loginPassword.focus(), 0);
+}
+
+function closeLoginDialog() {
+  if (els.loginDialog?.open) els.loginDialog.close();
+  lockApp();
+}
+
+async function verifyEditPassword(password) {
+  if (!neonConfigured(state.neon)) {
+    throw new Error("Подключение к Neon не настроено");
+  }
+  if (!state.neonReadOk) {
+    throw new Error("нет связи с Neon — повторите вход позже");
+  }
+  const snapshot = state.neonSnapshot;
+  const payload = snapshot ? { ...snapshot, dirty: false } : { ...statePayload(), dirty: false };
+  const result = await neonSaveSchedule({ ...state.neon, password }, payload);
+  return { result, payload, usedSnapshot: Boolean(snapshot) };
+}
+
+async function onLoginSubmit(event) {
+  event.preventDefault();
+  const password = els.loginPassword.value;
+  if (!password) {
+    els.loginStatus.textContent = "Введите пароль.";
+    return;
+  }
+  const submit = els.loginForm.querySelector('button[type="submit"]');
+  els.loginStatus.textContent = "";
+  submit.disabled = true;
+  try {
+    if (await matchesViewPassword(password)) {
+      unlockApp("view");
+      toast("График открыт в режиме просмотра.", "success");
+      return;
+    }
+    const { result, payload, usedSnapshot } = await verifyEditPassword(password);
+    state.neon.password = password;
+    state.neonError = "";
+    state.neonSnapshot = payload;
+    state.neonUpdatedAt = result?.updatedAt || new Date().toISOString();
+    state.neon.lastUpdatedAt = state.neonUpdatedAt;
+    if (!usedSnapshot) state.neonDirty = false;
+    state.source = "neon";
+    setBadge("neon");
+    writeNeonConfig(state.neon);
+    writeStorage();
+    unlockApp("edit");
+    if (state.neonDirty) scheduleNeonSave();
+    toast("График открыт для редактирования.", "success");
+  } catch (error) {
+    const invalidPassword = /invalid password/i.test(error.message);
+    els.loginStatus.textContent = invalidPassword
+      ? "Неверный пароль. Проверьте раскладку и попробуйте снова."
+      : `Не удалось проверить пароль: ${error.message}`;
+    els.loginPassword.focus();
+    els.loginPassword.select();
+  } finally {
+    submit.disabled = false;
+  }
+}
+
+function openAccessDialog() {
+  if (state.readOnly) {
+    toast("Режим просмотра: пароль просмотра не меняется.", "info");
+    return;
+  }
+  els.accessPassword.value = "";
+  els.accessPassword2.value = "";
+  els.accessDisable.checked = false;
+  els.accessStatus.textContent = state.settings.viewPassword
+    ? "Пароль просмотра задан. Введите новый, чтобы заменить, или отметьте «Отключить»."
+    : "Пароль просмотра ещё не задан.";
+  els.accessDialog.showModal();
+  window.setTimeout(() => els.accessPassword.focus(), 0);
+}
+
+async function onAccessSubmit(event) {
+  event.preventDefault();
+  if (state.readOnly) {
+    els.accessDialog.close();
+    return;
+  }
+  const disable = els.accessDisable.checked;
+  const password = els.accessPassword.value;
+  const repeat = els.accessPassword2.value;
+  if (disable) {
+    if (!state.settings.viewPassword) {
+      els.accessStatus.textContent = "Пароль просмотра не задан.";
+      return;
+    }
+    state.settings.viewPassword = null;
+  } else if (!password) {
+    if (!state.settings.viewPassword) {
+      els.accessStatus.textContent = "Введите пароль просмотра.";
+      return;
+    }
+    els.accessDialog.close();
+    return;
   } else {
-    lines.push(`Data API: ${config.dataApiUrl}`);
-    lines.push(
-      state.neonUpdatedAt
-        ? `Последнее сохранение: ${formatStamp(state.neonUpdatedAt)}`
-        : "В этом браузере ещё нет сохранённых данных.",
-    );
-    if (!config.password) {
-      lines.push("Введите общий пароль — без него правки не сохранятся в Neon.");
+    if (password.length < 4) {
+      els.accessStatus.textContent = "Пароль просмотра — минимум 4 символа.";
+      return;
+    }
+    if (password !== repeat) {
+      els.accessStatus.textContent = "Пароли не совпадают.";
+      return;
+    }
+    const submit = els.accessForm.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    try {
+      const salt = randomSaltHex();
+      const hash = await hashPassword(password, salt);
+      state.settings.viewPassword = { salt, hash };
+    } catch (error) {
+      els.accessStatus.textContent = error.message;
+      return;
+    } finally {
+      submit.disabled = false;
     }
   }
-  if (state.neonError) lines.push(`Ошибка: ${state.neonError}`);
-  els.neonStatus.textContent = lines.join("\n");
-}
-
-function openNeonDialog() {
-  els.neonDataUrl.value = state.neon.dataApiUrl;
-  els.neonAuthUrl.value = state.neon.authUrl;
-  els.neonPassword.value = state.neon.password;
-  els.neonAutosave.checked = state.neon.autosave;
-  refreshNeonDialog();
-  if (!els.neonDialog.open) els.neonDialog.showModal();
-  if (!state.neon.password) {
-    window.setTimeout(() => els.neonPassword.focus(), 0);
-  }
-}
-
-function applyNeonFormConfig() {
-  state.neon = {
-    dataApiUrl: normalizeDataApiUrl(els.neonDataUrl.value),
-    authUrl: normalizeAuthUrl(els.neonAuthUrl.value),
-    password: els.neonPassword.value,
-    autosave: els.neonAutosave.checked,
-    lastUpdatedAt: state.neonUpdatedAt || state.neon.lastUpdatedAt || "",
-  };
-  writeNeonConfig(state.neon);
-  refreshNeonDialog();
-  return state.neon;
+  markNeonDirty();
+  writeStorage();
+  els.accessDialog.close();
+  toast(
+    disable ? "Пароль просмотра отключён." : "Пароль просмотра сохранён.",
+    "success",
+  );
 }
 
 async function readNeonState({ silent = false } = {}) {
   if (!neonConfigured(state.neon)) {
-    if (!silent) {
-      openNeonDialog();
-      toast("Укажите Data API URL и Auth URL Neon.", "info");
-    }
+    if (!silent) toast("Подключение к Neon не настроено.", "error");
     return false;
   }
   if (hasManualSchedules() && !silent) {
@@ -594,21 +795,24 @@ async function readNeonState({ silent = false } = {}) {
   try {
     result = await neonLoadSchedule(state.neon);
     state.neonError = "";
+    state.neonReadOk = true;
+    state.neonSnapshot = result?.payload || null;
   } catch (error) {
     state.neonError = error.message;
+    state.neonReadOk = false;
+    state.neonSnapshot = null;
     if (!silent) {
       toast(`Не удалось загрузить из Neon: ${error.message}`, "error", 8000);
     }
     return false;
   } finally {
     setBusy(false);
-    refreshNeonDialog();
   }
 
   if (!result?.payload) {
     if (!silent) {
       toast(
-        "В Neon пока нет сохранённого графика. Нажмите «Сохранить в Neon».",
+        "В Neon пока нет сохранённого графика. Он будет записан после входа с паролем редактирования.",
         "info",
         6000,
       );
@@ -621,33 +825,31 @@ async function readNeonState({ silent = false } = {}) {
   state.neon.lastUpdatedAt = state.neonUpdatedAt;
   writeNeonConfig(state.neon);
   updateStatus();
-  refreshNeonDialog();
   if (!silent) toast("График загружен из Neon.", "success");
   return true;
 }
 
 async function saveToNeon({ silent = false } = {}) {
+  if (state.readOnly || state.accessRole !== "edit") return false;
   if (!state.schedule) {
     if (!silent) toast("Сначала сформируйте график.", "error");
     return false;
   }
   if (!neonConfigured(state.neon) || !state.neon.password) {
-    openNeonDialog();
-    if (!silent) toast("Укажите адреса Neon и общий пароль.", "info");
+    if (!silent) toast("Войдите с паролем редактирования.", "info");
     return false;
   }
   if (state.busy) return false;
 
   const revision = state.revision;
+  const payload = { ...statePayload(), dirty: false };
   state.neonSaving = true;
   setBusy(true);
   let result;
   try {
-    result = await neonSaveSchedule(state.neon, {
-      ...statePayload(),
-      dirty: false,
-    });
+    result = await neonSaveSchedule(state.neon, payload);
     state.neonError = "";
+    state.neonSnapshot = payload;
   } catch (error) {
     state.neonError = error.message;
     const invalidPassword = /invalid password/i.test(error.message);
@@ -656,15 +858,17 @@ async function saveToNeon({ silent = false } = {}) {
       writeNeonConfig(state.neon);
     }
     const message = invalidPassword
-      ? "Неверный пароль для записи в Neon. Введите его заново."
+      ? "Неверный пароль для записи в Neon. Войдите заново."
       : `Не удалось сохранить в Neon: ${error.message}`;
     toast(message, "error", 8000);
-    if (invalidPassword) openNeonDialog();
+    if (invalidPassword) {
+      lockApp({ farewell: false });
+      openLoginDialog();
+    }
     return false;
   } finally {
     state.neonSaving = false;
     setBusy(false);
-    refreshNeonDialog();
   }
 
   state.source = "neon";
@@ -684,7 +888,7 @@ async function saveToNeon({ silent = false } = {}) {
 }
 
 function scheduleNeonSave() {
-  if (!state.neonReady) return;
+  if (!state.neonReady || state.readOnly || state.accessRole !== "edit") return;
   if (!state.neon.autosave || !state.neon.password) return;
   if (!neonConfigured(state.neon) || !state.neonDirty) return;
   if (state.neonTimer) window.clearTimeout(state.neonTimer);
@@ -700,6 +904,7 @@ function scheduleNeonSave() {
 }
 
 function markNeonDirty() {
+  if (state.readOnly) return;
   state.neonDirty = true;
   state.revision += 1;
   updateStatus();
@@ -783,6 +988,23 @@ function syncControls() {
   els.inAnchor.value = settings.anchor;
   els.inHolidays.checked = settings.useHolidays;
   els.anchorField.hidden = settings.mode !== MODE_ROTATION;
+}
+
+function setControlsReadOnly(readOnly) {
+  for (const control of [
+    els.inMonth,
+    els.inYear,
+    els.inDutyCount,
+    els.inExtraCount,
+    els.inMode,
+    els.inAnchor,
+    els.inHolidays,
+  ]) {
+    if (control) control.disabled = readOnly;
+  }
+  for (const button of [els.btnSettings, els.btnCalendar, els.btnAdd, els.btnAccess]) {
+    if (button) button.disabled = readOnly;
+  }
 }
 
 function readControls() {
@@ -1008,6 +1230,7 @@ async function generateMonth({ notify = false } = {}) {
 }
 
 async function runGenerateMonth({ notify }) {
+  if (state.readOnly) return false;
   const year = state.settings.year;
   const month = state.settings.month;
   const { mode, anchor: anchorIso, useHolidays, nightHours, dailyHours, workdayHours } =
@@ -1113,6 +1336,10 @@ async function activateMonth({ notify = false } = {}) {
 }
 
 async function onPeriodChange() {
+  if (state.readOnly) {
+    syncControls();
+    return;
+  }
   const token = (state.navToken += 1);
   const previous = { ...state.settings };
   Object.assign(state.settings, readControls());
@@ -1131,6 +1358,10 @@ async function onPeriodChange() {
 }
 
 async function onSettingsChange() {
+  if (state.readOnly) {
+    syncControls();
+    return;
+  }
   const next = readControls();
   const countsChanged =
     next.dutyCount !== state.settings.dutyCount ||
@@ -1323,7 +1554,9 @@ function renderSchedule(issueDays) {
     const nameTitle = [
       `${roleTitle}${engineer.position ? ` · ${engineer.position}` : ""}`,
       engineer.phone ? `Телефон: ${engineer.phone}` : "",
-      "Нажмите, чтобы изменить роль, телефон и должность.",
+      state.readOnly
+        ? "Режим просмотра."
+        : "Нажмите, чтобы изменить роль, телефон и должность.",
     ]
       .filter(Boolean)
       .join("\n");
@@ -1351,11 +1584,11 @@ function renderSchedule(issueDays) {
       const title = [
         holiday ? "Праздничный день" : "",
         overtime > 0 ? `Переработка +${formatNumber(overtime)} ч` : "",
-        shiftTooltip(engineer.role),
+        state.readOnly ? "Режим просмотра: правки недоступны." : shiftTooltip(engineer.role),
       ]
         .filter(Boolean)
         .join(". ");
-      html += `<td class="${classes}"${content.style} data-row="${row}" data-col="${day}" draggable="true" tabindex="-1" title="${esc(title)}">${content.html}</td>`;
+      html += `<td class="${classes}"${content.style} data-row="${row}" data-col="${day}" draggable="${state.readOnly ? "false" : "true"}" tabindex="-1" title="${esc(title)}">${content.html}</td>`;
     }
     html += "</tr>";
   }
@@ -1473,6 +1706,7 @@ function closeCellMenu() {
 }
 
 function openCellMenu(row, col, x, y) {
+  if (state.readOnly) return;
   const schedule = state.schedule;
   if (!schedule) return;
   const engineer = schedule.engineers[row];
@@ -1504,6 +1738,7 @@ function openCellMenu(row, col, x, y) {
 }
 
 function applyShift(row, col, shift) {
+  if (state.readOnly) return;
   const schedule = state.schedule;
   if (!schedule) return;
   const engineer = schedule.engineers[row];
@@ -1534,6 +1769,7 @@ function applyShift(row, col, shift) {
 }
 
 function openOvertimeDialog(row, col) {
+  if (state.readOnly) return;
   const schedule = state.schedule;
   const engineer = schedule?.engineers?.[row];
   if (!schedule || !engineer) return;
@@ -1549,6 +1785,7 @@ function openOvertimeDialog(row, col) {
 }
 
 function setDayOvertime(row, col, hours) {
+  if (state.readOnly) return false;
   const schedule = state.schedule;
   const engineer = schedule?.engineers?.[row];
   if (!schedule || !engineer) return false;
@@ -1597,6 +1834,7 @@ function removeOvertimeFromDialog() {
 }
 
 function swapShifts(rowA, colA, rowB, colB) {
+  if (state.readOnly) return;
   const schedule = state.schedule;
   if (!schedule) return;
   const engineerA = schedule.engineers[rowA];
@@ -1812,6 +2050,7 @@ async function regenerateEmployeeRow(name) {
 }
 
 function openEngineerModal(index = null) {
+  if (state.readOnly) return;
   dialogMode = index === null ? "new" : "edit";
   dialogIndex = index === null ? -1 : index;
   els.engName.value = "";
@@ -1909,6 +2148,10 @@ function renameMemberInArchives(oldName, name, position) {
 }
 
 async function commitEngineerForm({ regenerate = false } = {}) {
+  if (state.readOnly) {
+    els.engineerDialog.close();
+    return;
+  }
   const name = els.engName.value.trim();
   if (!name) {
     els.engName.setCustomValidity("Укажите имя сотрудника.");
@@ -2044,6 +2287,7 @@ async function onEngineerSubmit(event) {
 }
 
 async function onEngineerDelete() {
+  if (state.readOnly) return;
   const member = state.schedule?.rows?.[dialogIndex];
   if (!member) return;
   if (member.role === ROLE.DUTY && countRole(state.staff, ROLE.DUTY) <= 2) {
@@ -2058,6 +2302,7 @@ async function onEngineerDelete() {
 }
 
 function openSettingsDialog() {
+  if (state.readOnly) return;
   els.setNight.value = formatNumber(state.settings.nightHours);
   els.setDaily.value = formatNumber(state.settings.dailyHours);
   els.setWorkday.value = formatNumber(state.settings.workdayHours);
@@ -2066,6 +2311,10 @@ function openSettingsDialog() {
 
 async function onSettingsSubmit(event) {
   event.preventDefault();
+  if (state.readOnly) {
+    els.settingsDialog.close();
+    return;
+  }
   state.settings.nightHours = clampNumber(els.setNight.value, 1, 24, 15);
   state.settings.dailyHours = clampNumber(els.setDaily.value, 1, 24, 24);
   state.settings.workdayHours = clampNumber(els.setWorkday.value, 1, 24, 8);
@@ -2187,7 +2436,7 @@ function exportExcel() {
 }
 
 async function importCalendar(file) {
-  if (!file) return;
+  if (state.readOnly || !file) return;
   try {
     const raw = JSON.parse(await file.text());
     const clean = sanitizeCalendarData(raw);
@@ -2262,10 +2511,11 @@ function bindEvents() {
       return;
     }
     const nameCell = event.target.closest(".name-cell[data-row]");
-    if (nameCell) openEngineerModal(Number(nameCell.dataset.row));
+    if (nameCell && !state.readOnly) openEngineerModal(Number(nameCell.dataset.row));
   });
 
   els.scheduleTable.addEventListener("contextmenu", (event) => {
+    if (state.readOnly) return;
     const cell = event.target.closest(".shift-cell");
     if (!cell) return;
     event.preventDefault();
@@ -2310,7 +2560,7 @@ function bindEvents() {
 
   els.scheduleTable.addEventListener("dragstart", (event) => {
     const cell = event.target.closest(".shift-cell");
-    if (!cell) {
+    if (!cell || state.readOnly) {
       event.preventDefault();
       return;
     }
@@ -2363,6 +2613,10 @@ function bindEvents() {
     const cell = event.target.closest(".shift-cell");
     if (!cell) return;
     event.preventDefault();
+    if (state.readOnly) {
+      clearDragState();
+      return;
+    }
     const source = state.dragSource;
     const row = Number(cell.dataset.row);
     const col = Number(cell.dataset.col);
@@ -2441,39 +2695,24 @@ function bindEvents() {
   els.settingsForm.addEventListener("submit", onSettingsSubmit);
   els.setCancel.addEventListener("click", () => els.settingsDialog.close());
 
-  els.neonForm.addEventListener("submit", (event) => {
+  els.btnAccess.addEventListener("click", openAccessDialog);
+  els.loginForm.addEventListener("submit", onLoginSubmit);
+  els.loginClose.addEventListener("click", closeLoginDialog);
+  els.loginDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
-    applyNeonFormConfig();
-    els.neonDialog.close();
-    if (!state.neon.password) {
-      toast("Пароль не задан: правки сохраняются только в этом браузере.", "info");
-      return;
-    }
-    if (hasManualSchedules() || state.neonDirty) {
-      markNeonDirty();
-      toast("Neon подключён: текущий график будет сохранён.", "success");
-    } else {
-      toast("Neon подключён: новые правки сохраняются автоматически.", "success");
+    closeLoginDialog();
+  });
+  els.accessForm.addEventListener("submit", onAccessSubmit);
+  els.accessCancel.addEventListener("click", () => els.accessDialog.close());
+  els.accessDisable.addEventListener("change", () => {
+    if (els.accessDisable.checked) {
+      els.accessPassword.value = "";
+      els.accessPassword2.value = "";
     }
   });
-  els.neonClose.addEventListener("click", () => els.neonDialog.close());
-  els.neonLoad.addEventListener("click", async () => {
-    applyNeonFormConfig();
-    if (!neonConfigured(state.neon)) {
-      toast("Укажите Data API URL и Auth URL Neon.", "info");
-      return;
-    }
-    els.neonDialog.close();
-    await readNeonState();
-  });
-  els.neonSave.addEventListener("click", async () => {
-    applyNeonFormConfig();
-    if (!neonConfigured(state.neon) || !state.neon.password) {
-      toast("Укажите адреса Neon и общий пароль.", "info");
-      return;
-    }
-    els.neonDialog.close();
-    await saveToNeon();
+  els.lockEnter.addEventListener("click", () => {
+    if (els.lockScreen) els.lockScreen.hidden = true;
+    openLoginDialog();
   });
 }
 
@@ -2482,6 +2721,8 @@ async function boot() {
   buildMonthOptions();
   bindEvents();
 
+  state.neon.password = "";
+  writeNeonConfig(state.neon);
   state.neonUpdatedAt = state.neon.lastUpdatedAt || "";
 
   const stored = readStorage();
@@ -2501,10 +2742,9 @@ async function boot() {
   }
 
   state.neonReady = true;
+  setControlsReadOnly(true);
   updateStatus();
-  refreshNeonDialog();
-
-  if (!state.neon.password) openNeonDialog();
+  openLoginDialog();
 }
 
 boot().catch((error) => {

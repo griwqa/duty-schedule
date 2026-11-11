@@ -7,7 +7,7 @@
   <meta name="description" content="Производственный календарь, ротация 1/3, доп. инженеры и 5-дневный график отдела.">
   <link rel="stylesheet" href="./web/styles.css">
 </head>
-<body>
+<body class="is-locked">
   <header class="app-header">
     <div class="app-header__inner">
       <div>
@@ -24,6 +24,8 @@
         <button class="btn" id="btn-export" type="button">Экспорт в Excel</button>
         <button class="btn" id="btn-settings" type="button">Настройки смен</button>
         <button class="btn" id="btn-calendar" type="button">Загрузить календарь</button>
+        <button class="btn" id="btn-access" type="button">Пароль просмотра</button>
+        <span class="mode-badge" id="mode-badge" hidden>Режим просмотра</span>
         <span class="toolbar-status" id="load-state" aria-live="polite"></span>
       </div>
 
@@ -124,8 +126,16 @@
   </main>
 
   <footer class="app-footer">
-    <p>Общий график хранится в Neon и сохраняется автоматически. При первом входе в новом браузере приложение попросит общий пароль. Календарь — <code>data/calendar_ГОД.json</code>.</p>
+    <p>Общий график хранится в Neon и сохраняется автоматически. Вход — по общему паролю (редактирование) или паролю просмотра (только чтение). Пароль просмотра задаётся кнопкой «Пароль просмотра». Календарь — <code>data/calendar_ГОД.json</code>.</p>
   </footer>
+
+  <div class="lock-screen" id="lock-screen" hidden>
+    <div class="lock-card">
+      <h2>До новых встреч!</h2>
+      <p>График закрыт. Чтобы вернуться, введите пароль.</p>
+      <button class="btn btn-primary" id="lock-enter" type="button">Войти в график</button>
+    </div>
+  </div>
 
   <div class="toast-container" id="toast-container" aria-live="polite"></div>
   <div class="cell-menu" id="cell-menu" role="menu" hidden></div>
@@ -206,36 +216,44 @@
     </form>
   </dialog>
 
-  <dialog class="dialog" id="neon-dialog">
-    <form id="neon-form">
-      <h2>Общая база Neon</h2>
-      <p class="dialog-hint">Введите общий пароль — график будет читаться и сохраняться в Neon автоматически. Пароль хранится только в этом браузере.</p>
+  <dialog class="dialog dialog--narrow" id="login-dialog">
+    <form id="login-form">
+      <h2>Вход в график</h2>
+      <p class="dialog-hint">Введите общий пароль для редактирования или пароль просмотра. Без пароля график остаётся закрытым.</p>
       <label class="field">
-        <span>Общий пароль</span>
-        <input id="neon-password" type="password" autocomplete="current-password">
+        <span>Пароль</span>
+        <input id="login-password" type="password" autocomplete="current-password" required>
       </label>
-      <details class="neon-advanced">
-        <summary>Настройки подключения</summary>
-        <label class="field">
-          <span>Data API URL</span>
-          <input id="neon-data-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://…apirest.…neon.tech/neondb/rest/v1">
-        </label>
-        <label class="field">
-          <span>Auth URL</span>
-          <input id="neon-auth-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://…neonauth.…neon.tech/neondb/auth">
-        </label>
-      </details>
-      <label class="check">
-        <input id="neon-autosave" type="checkbox">
-        <span>Автосохранение правок в Neon</span>
-      </label>
-      <p class="dialog-hint neon-status" id="neon-status"></p>
+      <p class="dialog-hint" id="login-status"></p>
       <div class="dialog-actions">
         <span class="spacer"></span>
-        <button class="btn" id="neon-load" type="button">Загрузить из Neon</button>
-        <button class="btn" id="neon-save" type="button">Сохранить в Neon</button>
-        <button class="btn" id="neon-close" type="button">Закрыть</button>
-        <button class="btn btn-primary" type="submit">Подключить</button>
+        <button class="btn" id="login-close" type="button">Закрыть</button>
+        <button class="btn btn-primary" type="submit">Войти</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog dialog--narrow" id="access-dialog">
+    <form id="access-form">
+      <h2>Пароль просмотра</h2>
+      <p class="dialog-hint">Пароль просмотра открывает график только для чтения: смены, сотрудники и настройки не меняются. Пароль редактирования — общий пароль Neon.</p>
+      <label class="field">
+        <span>Новый пароль просмотра</span>
+        <input id="access-password" type="password" minlength="4" autocomplete="new-password" placeholder="оставьте пустым, чтобы не менять">
+      </label>
+      <label class="field">
+        <span>Повтор пароля</span>
+        <input id="access-password2" type="password" minlength="4" autocomplete="new-password">
+      </label>
+      <label class="check">
+        <input id="access-disable" type="checkbox">
+        <span>Отключить пароль просмотра</span>
+      </label>
+      <p class="dialog-hint" id="access-status"></p>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="access-cancel" type="button">Отмена</button>
+        <button class="btn btn-primary" type="submit">Сохранить</button>
       </div>
     </form>
   </dialog>
