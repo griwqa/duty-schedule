@@ -10,7 +10,6 @@ import {
   daysInMonth,
   defaultName,
   engineerStats,
-  ensureRoleCount,
   isoDate,
   isoWeekday,
   mergeFiveDayShift,
@@ -356,12 +355,8 @@ function cacheElements() {
     "app-badge",
     "in-month",
     "in-year",
-    "in-duty-count",
-    "in-extra-count",
-    "in-mode",
     "in-anchor",
     "in-holidays",
-    "anchor-field",
     "conditions",
     "calendar-note",
     "schedule-table",
@@ -985,24 +980,12 @@ function syncControls() {
   const settings = state.settings;
   els.inMonth.value = String(settings.month);
   els.inYear.value = String(settings.year);
-  els.inDutyCount.value = String(Math.max(2, countRole(state.staff, ROLE.DUTY)));
-  els.inExtraCount.value = String(countRole(state.staff, ROLE.EXTRA));
-  els.inMode.value = settings.mode;
   els.inAnchor.value = settings.anchor;
   els.inHolidays.checked = settings.useHolidays;
-  els.anchorField.hidden = settings.mode !== MODE_ROTATION;
 }
 
 function setControlsReadOnly(readOnly) {
-  for (const control of [
-    els.inMonth,
-    els.inYear,
-    els.inDutyCount,
-    els.inExtraCount,
-    els.inMode,
-    els.inAnchor,
-    els.inHolidays,
-  ]) {
+  for (const control of [els.inMonth, els.inYear, els.inAnchor, els.inHolidays]) {
     if (control) control.disabled = readOnly;
   }
   for (const button of [els.btnSettings, els.btnCalendar, els.btnAdd, els.btnAccess]) {
@@ -1015,9 +998,7 @@ function readControls() {
   return {
     year: clampInt(els.inYear.value, 2020, 2100, settings.year),
     month: clampInt(els.inMonth.value, 1, 12, settings.month),
-    dutyCount: clampInt(els.inDutyCount.value, 2, MAX_DUTY, 4),
-    extraCount: clampInt(els.inExtraCount.value, 0, MAX_EXTRA, 0),
-    mode: els.inMode.value === MODE_NIGHT ? MODE_NIGHT : MODE_ROTATION,
+    mode: settings.mode,
     anchor: /^\d{4}-\d{2}-\d{2}$/.test(els.inAnchor.value)
       ? els.inAnchor.value
       : todayIso(),
@@ -1360,62 +1341,18 @@ async function onPeriodChange() {
   writeStorage();
 }
 
-async function onSettingsChange() {
+function onSettingsChange() {
   if (state.readOnly) {
     syncControls();
     return;
   }
-  const next = readControls();
-  const countsChanged =
-    next.dutyCount !== state.settings.dutyCount ||
-    next.extraCount !== state.settings.extraCount;
-  const generationChanged =
-    next.mode !== state.settings.mode ||
-    next.useHolidays !== state.settings.useHolidays;
-  Object.assign(state.settings, next);
-  if (countsChanged) {
-    state.staff = ensureRoleCount(
-      state.staff,
-      ROLE.DUTY,
-      state.settings.dutyCount,
-    );
-    state.staff = ensureRoleCount(
-      state.staff,
-      ROLE.EXTRA,
-      state.settings.extraCount,
-    );
-    state.settings.dutyCount = Math.max(2, countRole(state.staff, ROLE.DUTY));
-    state.settings.extraCount = countRole(state.staff, ROLE.EXTRA);
-    syncSchedulesWithStaff();
-  }
-  if (generationChanged && state.schedule && !state.dirty) {
-    const ok = await generateMonth();
-    if (ok) {
-      toast(
-        countsChanged
-          ? "Список сотрудников обновлён, график пересобран."
-          : "Условия применены: график пересобран без ручных правок.",
-        "success",
-      );
-    }
-    return;
-  }
+  Object.assign(state.settings, readControls());
   syncControls();
   renderAll();
   updateCalendarNote();
   markNeonDirty();
   writeStorage();
-  if (generationChanged && state.dirty) {
-    toast(
-      "В этом месяце есть ручные правки, поэтому график не пересобран. Новые условия применятся к следующему месяцу.",
-      "info",
-      5600,
-    );
-  } else if (countsChanged) {
-    toast("Список сотрудников обновлён, смены сохранены.", "success");
-  } else {
-    toast("Условия сохранены.", "info", 3200);
-  }
+  toast("Условия сохранены.", "info", 3200);
 }
 
 function syncSchedulesWithStaff() {
@@ -1538,7 +1475,7 @@ function renderSchedule(issueDays) {
   for (let day = 1; day <= total; day += 1) {
     const issue = issueDays.has(day);
     const iso = isoDate(schedule.year, schedule.month, day);
-    const holiday = calendar.isHoliday(iso);
+    const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
     const title = [
       holiday ? "Праздничный день" : "",
       issue ? "Проверьте покрытие дня или смены подряд" : "",
@@ -1571,7 +1508,7 @@ function renderSchedule(issueDays) {
       const shift = engineer.shifts[day - 1] || SHIFT.OFF;
       const parts = splitShift(shift);
       const combo = parts.length > 1;
-      const holiday = calendar.isHoliday(iso);
+      const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
       const overtime = Number(engineer.overtimeByDay?.[day - 1]) || 0;
       const weekend = !shift && calendar.isWeekend(iso);
       const classes = [
@@ -1598,7 +1535,7 @@ function renderSchedule(issueDays) {
   html += "</tbody><tfoot><tr><th class=\"name-cell dow-name\">Д.Н.</th>";
   for (let day = 1; day <= total; day += 1) {
     const iso = isoDate(schedule.year, schedule.month, day);
-    const holiday = calendar.isHoliday(iso);
+    const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
     const weekend = calendar.isWeekend(iso);
     const dow = DOW_RU[(isoWeekday(iso) + 6) % 7];
     const classes = ["dow-cell", holiday ? "holiday" : weekend ? "weekend" : ""]
@@ -1683,7 +1620,7 @@ function renderConditions() {
   if (displayMode === MODE_ROTATION) {
     text =
       `Условия работы: смена ${dailyHours} ч (С, 10:00–10:00), ежедневно на смене один инженер. ` +
-      `Ротация от ${formatDateRu(displayAnchor)}: 1 смена / ${Math.max(1, duty - 1)} дн. отдыха. ` +
+      `Автоматическая основа от ${formatDateRu(displayAnchor)}: одна смена, затем ${Math.max(1, duty - 1)} дн. отдыха. ` +
       "Праздники суточники работают как обычные сутки. Перетащите смену на другую дату, чтобы обменять; правый клик — тип смены.";
   } else {
     text =
@@ -1698,7 +1635,9 @@ function renderConditions() {
     text += ` Доп. инженеров: ${extra} — У / Д / В ставятся вручную.`;
   }
   text +=
-    " Отпуск — Отп; праздничные дни обведены красной рамкой. Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника.";
+    " Отпуск — Отп." +
+    (state.settings.useHolidays ? " Праздничные дни обведены красной рамкой." : "") +
+    " Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника.";
   els.conditions.textContent = text;
 }
 
@@ -2363,7 +2302,9 @@ function exportExcel() {
       } else {
         style += "background:#FFFFFF;";
       }
-      if (calendar.isHoliday(iso)) style += "border:2px solid #C00000;";
+      if (state.settings.useHolidays && calendar.isHoliday(iso)) {
+        style += "border:2px solid #C00000;";
+      }
       const label = overtime > 0 ? `${shift} +${formatNumber(overtime)}`.trim() : shift;
       html += `<td style="${style}">${esc(label)}</td>`;
     }
@@ -2373,7 +2314,7 @@ function exportExcel() {
   html += `<tr><td style="${base}background:#D9E1F2;font-weight:bold;">Д.Н.</td>`;
   for (let day = 1; day <= total; day += 1) {
     const iso = isoDate(schedule.year, schedule.month, day);
-    const holiday = calendar.isHoliday(iso);
+    const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
     const weekend = calendar.isWeekend(iso);
     const dow = DOW_RU[(isoWeekday(iso) + 6) % 7];
     const style = holiday
@@ -2492,13 +2433,7 @@ function bindEvents() {
 
   els.inMonth.addEventListener("change", onPeriodChange);
   els.inYear.addEventListener("change", onPeriodChange);
-  for (const element of [
-    els.inDutyCount,
-    els.inExtraCount,
-    els.inMode,
-    els.inAnchor,
-    els.inHolidays,
-  ]) {
+  for (const element of [els.inAnchor, els.inHolidays]) {
     element.addEventListener("change", onSettingsChange);
   }
 

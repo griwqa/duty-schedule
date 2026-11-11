@@ -109,6 +109,16 @@ body.busy {
   gap: 8px;
 }
 
+.toolbar .field {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar .field span {
+  white-space: nowrap;
+}
+
 .toolbar-status {
   margin-left: auto;
   font-size: 12px;
@@ -206,16 +216,8 @@ body.busy {
   width: 92px;
 }
 
-.field--small input {
-  width: 88px;
-}
-
 .field--month select {
   width: 138px;
-}
-
-.field--mode select {
-  width: 268px;
 }
 
 .field--anchor input {
@@ -730,7 +732,9 @@ body.view-mode .schedule-actions .hint {
 
 body.view-mode .params input,
 body.view-mode .params select,
-body.view-mode .params .check input {
+body.view-mode .params .check input,
+body.view-mode .toolbar input,
+body.view-mode .toolbar select {
   pointer-events: none;
   opacity: 0.6;
 }
@@ -986,8 +990,7 @@ body.view-mode .shift-cell {
     gap: 10px;
   }
 
-  .field--month select,
-  .field--mode select {
+  .field--month select {
     width: 190px;
   }
 

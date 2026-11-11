@@ -7,7 +7,7 @@ export const ROLE = {
 export const ROLES = [ROLE.DUTY, ROLE.FIVE_DAY, ROLE.EXTRA];
 
 export const ROLE_TITLES = {
-  [ROLE.DUTY]: "Суточник (1/3)",
+  [ROLE.DUTY]: "Суточник",
   [ROLE.FIVE_DAY]: "5-дневный график",
   [ROLE.EXTRA]: "Доп. инженер (подмена)",
 };
