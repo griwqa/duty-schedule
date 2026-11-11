@@ -1251,13 +1251,19 @@ function shiftTooltip(role) {
   if (role === ROLE.FIVE_DAY) {
     return "5-дневный график: база — о (офис), у (удалёнка), в (выезд); дежурство — У, В, Н; Отп — отпуск. Если в дне уже есть база, дежурство добавляется второй частью: о/В; повторный выбор части в совмещённом дне убирает её. Правый клик → «Переработка» — часы сверх смены. Перетаскивание обменивает значения между датами.";
   }
-  return "Суточник: правый клик — С, Н, о (офис), у (удалёнка), в (выезд), Отп (отпуск), переработка или выходной. Праздники — обычные сутки, в ячейке отмечены звёздочкой. Перетаскивание обменивает значения между датами.";
+  return "Суточник: правый клик — С, Н, о (офис), у (удалёнка), в (выезд), Отп (отпуск), переработка или выходной. Праздники — обычные сутки, в ячейке обведены красной рамкой. Перетаскивание обменивает значения между датами.";
 }
 
-function shiftCellContent(shift, { holiday = false, overtime = 0 } = {}) {
+const OVERTIME_TINT =
+  "linear-gradient(315deg, rgba(191, 121, 0, 0.34) 0%, rgba(191, 121, 0, 0.13) 46%, rgba(191, 121, 0, 0) 74%)";
+const OVERTIME_FILL =
+  "linear-gradient(135deg, rgba(191, 121, 0, 0.28) 0%, rgba(191, 121, 0, 0.12) 58%, rgba(191, 121, 0, 0.05) 100%)";
+
+function shiftCellContent(shift, { weekend = false, overtime = 0 } = {}) {
   const parts = splitShift(shift);
   let html = esc(shift);
-  let style = "";
+  let solid = shift ? (SHIFT_FILL[shift] || SHIFT_FILL[parts[0]])?.[0] || "#ffffff" : weekend ? "#fff2cc" : "#ffffff";
+  let image = "";
   if (parts.length > 1) {
     const baseFill = SHIFT_FILL[parts[0]];
     const dutyFill = SHIFT_FILL[parts[1]];
@@ -1267,16 +1273,22 @@ function shiftCellContent(shift, { holiday = false, overtime = 0 } = {}) {
       `<span class="combo-part">${esc(parts[0])}</span>` +
       '<span class="combo-sep">/</span>' +
       `<span class="combo-part combo-duty">${esc(parts[1])}</span>`;
-    style = ` style="background:linear-gradient(90deg, ${baseColor} 0 48%, ${dutyColor} 52% 100%)"`;
+    solid = "";
+    image = `linear-gradient(90deg, ${baseColor} 0 48%, ${dutyColor} 52% 100%)`;
   }
-  if (holiday) {
-    html += '<span class="cell-mark cell-holiday" aria-hidden="true">★</span>';
-  }
+  let style = "";
   if (overtime > 0) {
     const hours = esc(formatNumber(overtime));
-    html += shift
-      ? `<span class="cell-mark cell-ot" aria-hidden="true">${hours}ч</span>`
-      : `<span class="ot-only">${hours} ч</span>`;
+    if (shift) {
+      image = image ? `${OVERTIME_TINT}, ${image}` : OVERTIME_TINT;
+      html += `<span class="cell-mark cell-ot" aria-hidden="true">${hours}ч</span>`;
+    } else {
+      image = OVERTIME_FILL;
+      html += `<span class="ot-only">${hours} ч</span>`;
+    }
+  }
+  if (image) {
+    style = ` style="${solid ? `background-color:${solid};` : ""}background-image:${image}"`;
   }
   return { html, style };
 }
@@ -1332,12 +1344,10 @@ function renderSchedule(issueDays) {
         combo ? "shift-combo" : "",
         weekend ? "is-weekend" : "",
         holiday ? "is-holiday" : "",
-        overtime > 0 ? "has-overtime" : "",
-        overtime > 0 && !shift ? "overtime-only" : "",
       ]
         .filter(Boolean)
         .join(" ");
-      const content = shiftCellContent(shift, { holiday, overtime });
+      const content = shiftCellContent(shift, { weekend, overtime });
       const title = [
         holiday ? "Праздничный день" : "",
         overtime > 0 ? `Переработка +${formatNumber(overtime)} ч` : "",
@@ -1452,7 +1462,7 @@ function renderConditions() {
     text += ` Доп. инженеров: ${extra} — У / Д / В ставятся вручную.`;
   }
   text +=
-    " Отпуск — Отп; праздники отмечены ★ в строке сотрудника. Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника.";
+    " Отпуск — Отп; праздничные дни обведены красной рамкой. Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника.";
   els.conditions.textContent = text;
 }
 

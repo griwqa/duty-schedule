@@ -413,44 +413,11 @@ body.busy {
   box-shadow: inset 0 0 0 2px var(--holiday);
 }
 
-.shift-cell.has-overtime::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    315deg,
-    rgba(191, 121, 0, 0.32) 0%,
-    rgba(191, 121, 0, 0.12) 46%,
-    rgba(191, 121, 0, 0) 70%
-  );
-}
-
-.shift-cell.overtime-only::before {
-  background: linear-gradient(
-    135deg,
-    rgba(191, 121, 0, 0.22) 0%,
-    rgba(191, 121, 0, 0.08) 60%,
-    rgba(191, 121, 0, 0.03) 100%
-  );
-}
-
 .cell-mark {
   position: absolute;
   line-height: 1;
   font-weight: 700;
   pointer-events: none;
-}
-
-.cell-holiday {
-  left: 2px;
-  bottom: 1px;
-  color: var(--holiday);
-  font-size: 10px;
-  text-shadow:
-    0 0 2px #fff,
-    0 0 2px #fff;
 }
 
 .cell-ot {
@@ -641,10 +608,10 @@ body.busy {
 .legend-item .legend-holiday {
   flex: none;
   width: 13px;
-  font-style: normal;
-  font-weight: 700;
-  color: var(--holiday);
-  text-align: center;
+  height: 13px;
+  border-radius: 3px;
+  border: 2px solid var(--holiday);
+  background: #fff;
 }
 
 .legend-item .legend-overtime {
