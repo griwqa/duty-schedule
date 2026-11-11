@@ -12,6 +12,7 @@ import {
   engineerStats,
   isoDate,
   isoWeekday,
+  joinShift,
   mergeFiveDayShift,
   normalizeFiveDayShift,
   normalizeStaff,
@@ -351,6 +352,7 @@ function cacheElements() {
     "btn-settings",
     "btn-calendar",
     "btn-add",
+    "btn-redistribute",
     "load-state",
     "app-badge",
     "in-month",
@@ -399,6 +401,12 @@ function cacheElements() {
     "set-daily",
     "set-workday",
     "set-cancel",
+    "redistribute-dialog",
+    "redistribute-form",
+    "redistribute-date",
+    "redistribute-order",
+    "redistribute-status",
+    "redistribute-cancel",
     "btn-access",
     "mode-badge",
     "login-dialog",
@@ -988,7 +996,13 @@ function setControlsReadOnly(readOnly) {
   for (const control of [els.inMonth, els.inYear, els.inAnchor, els.inHolidays]) {
     if (control) control.disabled = readOnly;
   }
-  for (const button of [els.btnSettings, els.btnCalendar, els.btnAdd, els.btnAccess]) {
+  for (const button of [
+    els.btnSettings,
+    els.btnCalendar,
+    els.btnAdd,
+    els.btnRedistribute,
+    els.btnAccess,
+  ]) {
     if (button) button.disabled = readOnly;
   }
 }
@@ -1593,17 +1607,20 @@ function renderStats() {
 }
 
 function renderValidation(validation) {
+  const action = state.readOnly
+    ? ""
+    : '<button class="btn validation-action js-redistribute" type="button">Перераспределить смены суточников</button>';
   if (!validation.issues.length) {
     els.validation.className = "validation ok";
-    els.validation.textContent =
-      "Замечаний нет: нет двух дежурных в один день и смен подряд.";
+    els.validation.innerHTML =
+      `<span>Замечаний нет: нет двух дежурных в один день и смен подряд.</span>${action}`;
     return;
   }
   els.validation.className = "validation has-issues";
   els.validation.innerHTML =
-    `Замечания (${validation.issues.length}):<ul>` +
-    validation.issues.map((issue) => `<li>${esc(issue)}</li>`).join("") +
-    "</ul>";
+    `<span>Замечания (${validation.issues.length}):</span>` +
+    `<ul>${validation.issues.map((issue) => `<li>${esc(issue)}</li>`).join("")}</ul>` +
+    action;
 }
 
 function renderConditions() {
@@ -1944,8 +1961,158 @@ function applyVacation() {
   );
 }
 
-async function regenerateEmployeeRow(name) {
+let redistributeOrder = [];
+
+function dutyEngineers() {
   const schedule = state.schedule;
+  if (!schedule) return [];
+  return schedule.engineers.filter((engineer) => engineer.role === ROLE.DUTY);
+}
+
+function renderRedistributeOrder() {
+  const last = redistributeOrder.length - 1;
+  els.redistributeOrder.innerHTML = redistributeOrder
+    .map((name, index) => {
+      const label = `${index + 1}-я смена`;
+      return (
+        `<li class="duty-order-item">` +
+        `<span class="duty-order-rank">${index + 1}</span>` +
+        `<span class="duty-order-name">${esc(name)}</span>` +
+        `<span class="duty-order-when">${label}</span>` +
+        `<button class="duty-order-btn" type="button" data-move="up" data-index="${index}" title="Выше" aria-label="Переместить выше"${index === 0 ? " disabled" : ""}>↑</button>` +
+        `<button class="duty-order-btn" type="button" data-move="down" data-index="${index}" title="Ниже" aria-label="Переместить ниже"${index === last ? " disabled" : ""}>↓</button>` +
+        `</li>`
+      );
+    })
+    .join("");
+}
+
+function moveRedistribute(index, direction) {
+  const target = direction === "up" ? index - 1 : index + 1;
+  if (target < 0 || target >= redistributeOrder.length) return;
+  const [name] = redistributeOrder.splice(index, 1);
+  redistributeOrder.splice(target, 0, name);
+  renderRedistributeOrder();
+}
+
+function openRedistributeDialog() {
+  if (state.readOnly) return;
+  const schedule = state.schedule;
+  if (!schedule) return;
+  const duty = dutyEngineers();
+  if (duty.length < 2) {
+    toast("Для перераспределения нужно минимум два суточника.", "error");
+    return;
+  }
+  const range = activeMonthRange();
+  if (!range) return;
+  const today = todayIso();
+  els.redistributeDate.min = range.start;
+  els.redistributeDate.max = range.end;
+  els.redistributeDate.value =
+    today >= range.start && today <= range.end ? today : range.start;
+  redistributeOrder = duty.map((engineer) => engineer.name);
+  renderRedistributeOrder();
+  els.redistributeStatus.textContent =
+    `Смены с выбранного числа до ${formatDateRu(range.end)} будут пересобраны. Тип смены (Н или С) сохраняется по дням.`;
+  els.redistributeDialog.showModal();
+}
+
+function redistributeDutyShifts(startIso) {
+  const schedule = state.schedule;
+  if (!schedule) return null;
+  const range = activeMonthRange();
+  if (!range || !startIso || startIso < range.start || startIso > range.end) {
+    toast("Выберите дату внутри открытого месяца.", "error");
+    return null;
+  }
+  const duty = dutyEngineers();
+  const byName = new Map(duty.map((engineer) => [engineer.name, engineer]));
+  const order = redistributeOrder
+    .map((name) => byName.get(name))
+    .filter(Boolean);
+  if (order.length < 2) {
+    toast("В порядке должно быть минимум два суточника.", "error");
+    return null;
+  }
+
+  const total = daysInMonth(schedule.year, schedule.month);
+  const startIndex = Number(startIso.slice(8, 10)) - 1;
+  if (startIndex < 0 || startIndex >= total) {
+    toast("Выберите дату внутри открытого месяца.", "error");
+    return null;
+  }
+
+  const dutyCodes = [];
+  for (let index = startIndex; index < total; index += 1) {
+    let code = SHIFT.DAILY;
+    for (const engineer of duty) {
+      const parts = splitShift(engineer.shifts[index] || SHIFT.OFF);
+      const found = parts.find((part) => DUTY_SHIFT_SET.has(part));
+      if (found) {
+        code = found;
+        break;
+      }
+    }
+    dutyCodes.push(code);
+  }
+
+  for (const engineer of duty) {
+    for (let index = startIndex; index < total; index += 1) {
+      const rest = splitShift(engineer.shifts[index] || SHIFT.OFF).filter(
+        (part) => !DUTY_SHIFT_SET.has(part),
+      );
+      engineer.shifts[index] = joinShift(rest);
+    }
+  }
+
+  let pointer = 0;
+  for (let index = startIndex; index < total; index += 1) {
+    let assigned = false;
+    for (let attempt = 0; attempt < order.length; attempt += 1) {
+      const engineer = order[pointer % order.length];
+      pointer += 1;
+      const parts = splitShift(engineer.shifts[index] || SHIFT.OFF);
+      if (parts.includes(SHIFT.VACATION)) continue;
+      engineer.shifts[index] = joinShift([...parts, dutyCodes[index - startIndex]]);
+      assigned = true;
+      break;
+    }
+    if (!assigned) continue;
+  }
+
+  for (const engineer of duty) {
+    recalculateEngineer(
+      engineer,
+      state.settings.nightHours,
+      state.settings.dailyHours,
+      state.settings.workdayHours,
+    );
+  }
+  state.dirty = true;
+  archiveActiveSchedule();
+  markNeonDirty();
+  renderAll();
+  writeStorage();
+  return { startIso, days: total - startIndex };
+}
+
+function onRedistributeSubmit(event) {
+  event.preventDefault();
+  if (state.readOnly) {
+    els.redistributeDialog.close();
+    return;
+  }
+  const result = redistributeDutyShifts(els.redistributeDate.value);
+  if (!result) return;
+  els.redistributeDialog.close();
+  toast(
+    `Смены перераспределены с ${formatDateRu(result.startIso)}: ${result.days} дн.`,
+    "success",
+  );
+}
+
+async function regenerateEmployeeRow(name) {  const schedule = state.schedule;
   if (!schedule) return false;
   const year = schedule.year;
   const month = schedule.month;
@@ -2422,6 +2589,19 @@ function bindEvents() {
   els.btnExport.addEventListener("click", exportExcel);
   els.btnSettings.addEventListener("click", openSettingsDialog);
   els.btnAdd.addEventListener("click", () => openEngineerModal(null));
+  els.btnRedistribute.addEventListener("click", openRedistributeDialog);
+  els.redistributeForm.addEventListener("submit", onRedistributeSubmit);
+  els.redistributeCancel.addEventListener("click", () => {
+    els.redistributeDialog.close();
+  });
+  els.redistributeOrder.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-move]");
+    if (!button) return;
+    moveRedistribute(Number(button.dataset.index), button.dataset.move);
+  });
+  els.validation.addEventListener("click", (event) => {
+    if (event.target.closest(".js-redistribute")) openRedistributeDialog();
+  });
   els.btnCalendar.addEventListener("click", () => {
     els.calendarFile.value = "";
     els.calendarFile.click();
