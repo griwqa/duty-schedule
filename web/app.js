@@ -1273,7 +1273,10 @@ function shiftCellContent(shift, { holiday = false, overtime = 0 } = {}) {
     html += '<span class="cell-mark cell-holiday" aria-hidden="true">★</span>';
   }
   if (overtime > 0) {
-    html += `<span class="cell-mark cell-ot" aria-hidden="true">+${esc(formatNumber(overtime))}</span>`;
+    const hours = esc(formatNumber(overtime));
+    html += shift
+      ? `<span class="cell-mark cell-ot" aria-hidden="true">${hours}ч</span>`
+      : `<span class="ot-only">${hours} ч</span>`;
   }
   return { html, style };
 }
@@ -1330,6 +1333,7 @@ function renderSchedule(issueDays) {
         weekend ? "is-weekend" : "",
         holiday ? "is-holiday" : "",
         overtime > 0 ? "has-overtime" : "",
+        overtime > 0 && !shift ? "overtime-only" : "",
       ]
         .filter(Boolean)
         .join(" ");
