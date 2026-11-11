@@ -611,6 +611,9 @@ function lockApp({ farewell = true } = {}) {
   state.neon.password = "";
   writeNeonConfig(state.neon);
   closeCellMenu();
+  for (const dialog of document.querySelectorAll("dialog[open]")) {
+    if (dialog !== els.loginDialog) dialog.close();
+  }
   if (els.modeBadge) els.modeBadge.hidden = true;
   setControlsReadOnly(true);
   document.body.classList.add("is-locked");
