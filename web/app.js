@@ -533,26 +533,6 @@ function loadArchivedSchedules(saved) {
   }
 }
 
-function localManualSchedules(saved) {
-  const result = new Map();
-  if (saved?.schedules && typeof saved.schedules === "object") {
-    for (const value of Object.values(saved.schedules)) {
-      if (!isValidScheduleEntry(value) || !value.manual) continue;
-      result.set(monthKey(Number(value.year), Number(value.month)), value);
-    }
-  }
-  if (isValidScheduleEntry(saved?.schedule)) {
-    const schedule = saved.schedule;
-    if (Boolean(schedule.manual ?? saved.dirty)) {
-      result.set(monthKey(Number(schedule.year), Number(schedule.month)), {
-        ...schedule,
-        manual: true,
-      });
-    }
-  }
-  return result;
-}
-
 async function applySavedState(saved, source) {
   if (saved?.customCalendars) mergeCustomCalendars(saved.customCalendars);
 
@@ -665,13 +645,21 @@ async function verifyEditPassword(password) {
   if (!neonConfigured(state.neon)) {
     throw new Error("Подключение к Neon не настроено");
   }
-  if (!state.neonReadOk) {
+  let latest;
+  try {
+    latest = await neonLoadSchedule(state.neon);
+  } catch {
+    state.neonReadOk = false;
     throw new Error("нет связи с Neon — повторите вход позже");
   }
-  const snapshot = state.neonSnapshot;
-  const payload = snapshot ? { ...snapshot, dirty: false } : { ...statePayload(), dirty: false };
+  state.neonError = "";
+  state.neonReadOk = true;
+  state.neonSnapshot = latest?.payload || null;
+  const payload = latest?.payload
+    ? { ...latest.payload, dirty: false }
+    : { ...statePayload(), dirty: false };
   const result = await neonSaveSchedule({ ...state.neon, password }, payload);
-  return { result, payload, usedSnapshot: Boolean(snapshot) };
+  return { result, payload, latest: latest?.payload || null };
 }
 
 async function onLoginSubmit(event) {
@@ -686,23 +674,24 @@ async function onLoginSubmit(event) {
   submit.disabled = true;
   try {
     if (await matchesViewPassword(password)) {
+      await refreshNeonState();
       unlockApp("view");
       toast("График открыт в режиме просмотра.", "success");
       return;
     }
-    const { result, payload, usedSnapshot } = await verifyEditPassword(password);
+    const { result, payload, latest } = await verifyEditPassword(password);
     state.neon.password = password;
     state.neonError = "";
-    state.neonSnapshot = payload;
+    state.neonSnapshot = latest ? { ...latest, dirty: false } : payload;
+    if (latest) await applySavedState(latest, "neon");
     state.neonUpdatedAt = result?.updatedAt || new Date().toISOString();
     state.neon.lastUpdatedAt = state.neonUpdatedAt;
-    if (!usedSnapshot) state.neonDirty = false;
+    state.neonDirty = false;
     state.source = "neon";
     setBadge("neon");
     writeNeonConfig(state.neon);
     writeStorage();
     unlockApp("edit");
-    if (state.neonDirty) scheduleNeonSave();
     toast("График открыт для редактирования.", "success");
   } catch (error) {
     const invalidPassword = /invalid password/i.test(error.message);
@@ -832,6 +821,33 @@ async function readNeonState({ silent = false } = {}) {
   writeNeonConfig(state.neon);
   updateStatus();
   if (!silent) toast("График загружен из Neon.", "success");
+  return true;
+}
+
+async function refreshNeonState({ silent = true } = {}) {
+  if (!neonConfigured(state.neon)) return false;
+  let result;
+  try {
+    result = await neonLoadSchedule(state.neon);
+    state.neonError = "";
+    state.neonReadOk = true;
+    state.neonSnapshot = result?.payload || null;
+  } catch (error) {
+    state.neonError = error.message;
+    state.neonReadOk = false;
+    if (!silent) {
+      toast(`Не удалось загрузить из Neon: ${error.message}`, "error", 8000);
+    }
+    return false;
+  }
+  if (!result?.payload) return false;
+  await applySavedState(result.payload, "neon");
+  state.neonUpdatedAt = result.updatedAt || new Date().toISOString();
+  state.neon.lastUpdatedAt = state.neonUpdatedAt;
+  state.neonDirty = false;
+  writeNeonConfig(state.neon);
+  writeStorage();
+  updateStatus();
   return true;
 }
 
@@ -2850,16 +2866,9 @@ async function boot() {
   if (stored?.customCalendars) mergeCustomCalendars(stored.customCalendars);
   state.settings = normalizeSettings(stored?.settings, null);
 
-  const preservedMonths = localManualSchedules(stored);
   const neonLoaded = await readNeonState({ silent: true });
   if (!neonLoaded) {
     await applySavedState(stored, "local");
-  } else if (preservedMonths.size) {
-    for (const [key, value] of preservedMonths) state.schedules[key] = value;
-    if (await activateMonth()) {
-      updateStatus();
-      writeStorage();
-    }
   }
 
   state.neonReady = true;
