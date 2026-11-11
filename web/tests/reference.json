@@ -1,0 +1,4695 @@
+{
+  "calendars": {
+    "2026": {
+      "2026-01-01": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-02": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-03": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-04": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-05": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-06": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-07": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-08": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-09": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-10": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-11": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-01-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-01-31": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-01": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-07": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-08": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-15": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-21": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-02-22": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-02-23": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-02-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-02-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-01": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-07": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-03-08": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-03-09": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-03-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-15": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-21": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-22": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-29": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-03-31": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-12": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-04-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2026-05-01": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-05-02": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-05-03": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-05-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2026-05-09": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-05-10": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-05-11": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-05-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-16": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-23": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-30": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-05-31": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-06": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-07": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2026-06-12": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-06-13": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-06-14": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2026-06-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-20": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-21": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-06-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-12": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-07-31": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-01": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-02": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-08": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-09": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-15": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-16": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-22": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-23": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-29": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-30": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-08-31": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-06": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-12": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-13": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-20": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-09-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-03": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-10": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-10-31": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-01": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2026-11-04": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2026-11-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-07": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-08": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-15": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-21": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-22": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-29": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-11-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-06": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-12": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-13": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-20": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2026-12-31": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      }
+    },
+    "2027": {
+      "2027-01-01": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-02": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-03": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-04": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-05": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-06": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-07": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-08": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-09": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-10": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-01-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-16": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-23": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-30": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-01-31": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-06": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-07": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-13": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2027-02-21": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-02-22": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-02-23": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-02-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-02-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-06": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-03-07": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-03-08": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-03-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-13": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-20": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-21": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-03-31": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-03": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-10": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-04-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2027-05-01": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-05-02": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-05-03": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-05-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-08": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-05-09": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-05-10": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-05-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-15": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-16": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-22": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-23": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-29": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-30": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-05-31": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-06": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2027-06-12": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-06-13": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-06-14": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-06-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-20": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-06-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-03": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-10": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-07-31": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-01": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-07": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-08": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-15": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-21": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-22": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-29": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-08-31": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-12": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-09-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-02": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-03": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-04": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-05": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-09": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-10": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-16": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-17": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-23": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-24": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-30": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-10-31": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": true
+      },
+      "2027-11-04": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-11-05": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      },
+      "2027-11-06": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-11-07": {
+        "weekend": true,
+        "holiday": true,
+        "short": false
+      },
+      "2027-11-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-11": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-12": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-13": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-14": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-18": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-19": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-20": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-21": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-25": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-26": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-27": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-28": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-11-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-01": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-02": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-03": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-04": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-05": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-06": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-07": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-08": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-09": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-10": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-11": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-12": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-13": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-14": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-15": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-16": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-17": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-18": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-19": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-20": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-21": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-22": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-23": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-24": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-25": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-26": {
+        "weekend": true,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-27": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-28": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-29": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-30": {
+        "weekend": false,
+        "holiday": false,
+        "short": false
+      },
+      "2027-12-31": {
+        "weekend": false,
+        "holiday": true,
+        "short": false
+      }
+    }
+  },
+  "rotation_2026_11": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "shifts": [
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        ""
+      ],
+      "total": 192.0
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "shifts": [
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С"
+      ],
+      "total": 192.0
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        ""
+      ],
+      "total": 168.0
+    },
+    {
+      "name": "Инженер D",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        ""
+      ],
+      "total": 168.0
+    }
+  ],
+  "rotation_holidays_off": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "shifts": [
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        ""
+      ],
+      "total": 192.0
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "shifts": [
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С"
+      ],
+      "total": 192.0
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        ""
+      ],
+      "total": 168.0
+    },
+    {
+      "name": "Инженер D",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        ""
+      ],
+      "total": 168.0
+    }
+  ],
+  "rotation_2027_01": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        ""
+      ],
+      "total": 168.0
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "shifts": [
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        ""
+      ],
+      "total": 192.0
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "shifts": [
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        ""
+      ],
+      "total": 192.0
+    },
+    {
+      "name": "Инженер D",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "С"
+      ],
+      "total": 192.0
+    }
+  ],
+  "night_2026_11": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "С",
+        "",
+        ""
+      ],
+      "total": 132.0
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "shifts": [
+        "С",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "С",
+        ""
+      ],
+      "total": 132.0
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "Н",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        ""
+      ],
+      "total": 138.0
+    },
+    {
+      "name": "Инженер D",
+      "role": "duty",
+      "shifts": [
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н"
+      ],
+      "total": 138.0
+    }
+  ],
+  "night_2027_01": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "shifts": [
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "total": 156.0
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "П",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        ""
+      ],
+      "total": 156.0
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "С"
+      ],
+      "total": 156.0
+    },
+    {
+      "name": "Инженер D",
+      "role": "duty",
+      "shifts": [
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "total": 141.0
+    }
+  ],
+  "night_2026_03_three": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "shifts": [
+        "",
+        "Н",
+        "",
+        "",
+        "Н",
+        "",
+        "П",
+        "",
+        "П",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "С",
+        "",
+        ""
+      ],
+      "total": 186.0
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "shifts": [
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "Н",
+        "",
+        "",
+        "Н",
+        ""
+      ],
+      "total": 183.0
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "shifts": [
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "П",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "",
+        "",
+        "Н",
+        "",
+        "",
+        "Н",
+        "",
+        "С",
+        "",
+        "",
+        "Н"
+      ],
+      "total": 186.0
+    }
+  ],
+  "five_day_2027_02": [
+    {
+      "name": "Сотрудник A",
+      "role": "five_day",
+      "shifts": [
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "",
+        "",
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "",
+        "",
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "",
+        "",
+        "",
+        "о",
+        "о",
+        "о",
+        "",
+        ""
+      ],
+      "total": 152.0
+    },
+    {
+      "name": "Сотрудник B",
+      "role": "five_day",
+      "shifts": [
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "",
+        "",
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "",
+        "",
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "о",
+        "",
+        "",
+        "",
+        "о",
+        "о",
+        "о",
+        "",
+        ""
+      ],
+      "total": 152.0
+    }
+  ],
+  "extra_2026_11": [
+    {
+      "name": "Доп. инженер A",
+      "role": "extra",
+      "shifts": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "total": 0.0
+    },
+    {
+      "name": "Доп. инженер B",
+      "role": "extra",
+      "shifts": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "total": 0.0
+    }
+  ],
+  "norm_2026_11": 159.0,
+  "norm_2027_02": 151.0,
+  "validation": {
+    "issues": [
+      "день 2: на смене 2 чел.",
+      "день 3: на смене 2 чел.",
+      "Инженер A: смены подряд 1–2",
+      "Инженер A: смены подряд 2–3"
+    ],
+    "days": [
+      1,
+      2,
+      3
+    ]
+  }
+}

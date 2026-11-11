@@ -1,0 +1,725 @@
+Полный код приложения
+main.py — точка входа
+python
+import sys
+from PySide6.QtWidgets import QApplication
+from ui.main_window import MainWindow
+
+def main():
+    app = QApplication(sys.argv)
+    app.setApplicationName("График дежурств")
+    app.setStyle("Fusion")
+
+    # Загрузка стилей
+    try:
+        with open("resources/styles.qss", "r", encoding="utf-8") as f:
+            app.setStyleSheet(f.read())
+    except FileNotFoundError:
+        pass
+
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()
+core/models.py — модели данных
+python
+from dataclasses import dataclass, field
+from datetime import date
+from enum import Enum
+
+class ShiftType(Enum):
+    NIGHT = "Н"      # 19:00 – 10:00 (15 ч)
+    DAILY = "С"      # 10:00 – 10:00 (24 ч)
+    OFF   = ""       # выходной
+    HOLIDAY = "П"    # праздничная смена
+
+@dataclass
+class Shift:
+    shift_type: ShiftType
+    hours: float = 0.0
+
+@dataclass
+class Day:
+    date: date
+    is_weekend: bool = False
+    is_holiday: bool = False
+    is_short: bool = False   # сокращённый день
+
+@dataclass
+class Engineer:
+    name: str
+    shifts: list = field(default_factory=list)
+    total_hours: float = 0.0
+    night_count: int = 0
+    daily_count: int = 0
+    holiday_count: int = 0
+core/production_calendar.py — производственный календарь
+python
+import json
+from datetime import date
+from core.models import Day
+
+class ProductionCalendar:
+    """
+    Производственный календарь.
+    Поддерживает загрузку из JSON, XML (Россия) или ручное заполнение.
+    """
+
+    def __init__(self):
+        self.days: dict[date, Day] = {}
+
+    def load_from_json(self, path: str):
+        """Загрузка из JSON: {'2026-10-01': {'weekend': False, 'holiday': False}}"""
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        for iso_date, info in data.items():
+            d = date.fromisoformat(iso_date)
+            self.days[d] = Day(
+                date=d,
+                is_weekend=info.get("weekend", False),
+                is_holiday=info.get("holiday", False),
+                is_short=info.get("short", False),
+            )
+
+    def load_from_dict(self, data: dict):
+        """Ручное заполнение из словаря."""
+        for iso_date, info in data.items():
+            d = date.fromisoformat(iso_date)
+            self.days[d] = Day(
+                date=d,
+                is_weekend=info.get("weekend", False),
+                is_holiday=info.get("holiday", False),
+                is_short=info.get("short", False),
+            )
+
+    def is_holiday(self, d: date) -> bool:
+        return self.days.get(d, Day(d)).is_holiday
+
+    def is_weekend(self, d: date) -> bool:
+        return self.days.get(d, Day(d)).is_weekend
+
+    def is_short(self, d: date) -> bool:
+        return self.days.get(d, Day(d)).is_short
+
+    def get_norm_hours(self, year: int, month: int) -> float:
+        """Норма часов за месяц (упрощённо: 40 ч/нед)."""
+        import calendar
+        _, days_in_month = calendar.monthrange(year, month)
+        norm = 0.0
+        for day_num in range(1, days_in_month + 1):
+            d = date(year, month, day_num)
+            if self.is_weekend(d) or self.is_holiday(d):
+                continue
+            norm += 8.0
+            if self.is_short(d):
+                norm -= 1.0
+        return norm
+core/schedule_generator.py — алгоритм распределения
+python
+import calendar
+from datetime import date, timedelta
+from core.models import Engineer, ShiftType, Shift
+from core.production_calendar import ProductionCalendar
+
+class ScheduleGenerator:
+    """
+    Алгоритм распределения смен:
+    - ночные (будни) 19:00–10:00 = 15 ч
+    - суточные (выходные/праздники) 10:00–10:00 = 24 ч
+    - равномерная нагрузка
+    """
+
+    NIGHT_HOURS = 15.0
+    DAILY_HOURS = 24.0
+
+    def __init__(self, year: int, month: int, engineers: list[str],
+                 calendar: ProductionCalendar = None,
+                 night_hours: float = 15.0,
+                 daily_hours: float = 24.0):
+        self.year = year
+        self.month = month
+        self.calendar = calendar or ProductionCalendar()
+        self.night_hours = night_hours
+        self.daily_hours = daily_hours
+
+        self.engineers = [Engineer(name=n) for n in engineers]
+        _, self.days_in_month = calendar.monthrange(year, month)
+
+    def generate(self) -> list[Engineer]:
+        """Основной метод распределения."""
+        # 1. Собираем все дни месяца
+        days = [date(self.year, self.month, d) for d in range(1, self.days_in_month + 1)]
+
+        # 2. Разделяем на будни и выходные/праздники
+        workdays, holidays = [], []
+        for d in days:
+            if self.calendar.is_weekend(d) or self.calendar.is_holiday(d):
+                holidays.append(d)
+            else:
+                workdays.append(d)
+
+        # 3. Считаем общую нагрузку
+        total_hours = len(workdays) * self.night_hours + len(holidays) * self.daily_hours
+        target_per_engineer = total_hours / len(self.engineers)
+
+        # 4. Инициализируем расписание
+        for eng in self.engineers:
+            eng.shifts = [ShiftType.OFF] * self.days_in_month
+
+        # 5. Распределяем ночные смены по кругу
+        idx = 0
+        for d in workdays:
+            eng = self.engineers[idx % len(self.engineers)]
+            day_idx = d.day - 1
+            eng.shifts[day_idx] = ShiftType.NIGHT
+            eng.night_count += 1
+            eng.total_hours += self.night_hours
+            idx += 1
+
+        # 6. Распределяем суточные смены (выходные/праздники)
+        #    с учётом уже набранной нагрузки — берём наименее загруженного
+        for d in holidays:
+            eng = min(self.engineers, key=lambda e: e.total_hours)
+            day_idx = d.day - 1
+            if self.calendar.is_holiday(d):
+                eng.shifts[day_idx] = ShiftType.HOLIDAY
+                eng.holiday_count += 1
+            else:
+                eng.shifts[day_idx] = ShiftType.DAILY
+                eng.daily_count += 1
+            eng.total_hours += self.daily_hours
+
+        # 7. Балансировка: если разброс > 1 смены, перекидываем
+        self._balance()
+
+        return self.engineers
+
+    def _balance(self):
+        """Выравнивание нагрузки между инженерами."""
+        max_iter = 100
+        for _ in range(max_iter):
+            self.engineers.sort(key=lambda e: e.total_hours)
+            low, high = self.engineers[0], self.engineers[-1]
+            diff = high.total_hours - low.total_hours
+
+            # Если разница меньше половины смены — стоп
+            if diff < self.night_hours / 2:
+                break
+
+            # Ищем у "high" ночную смену, которую можно отдать "low"
+            moved = False
+            for i, shift in enumerate(high.shifts):
+                if shift == ShiftType.NIGHT:
+                    # проверяем, что у low этот день свободен
+                    if low.shifts[i] == ShiftType.OFF:
+                        low.shifts[i] = ShiftType.NIGHT
+                        low.night_count += 1
+                        low.total_hours += self.night_hours
+
+                        high.shifts[i] = ShiftType.OFF
+                        high.night_count -= 1
+                        high.total_hours -= self.night_hours
+                        moved = True
+                        break
+            if not moved:
+                break
+ui/schedule_widget.py — таблица графика
+python
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
+from PySide6.QtGui import QColor, QBrush, QFont
+from PySide6.QtCore import Qt
+import calendar
+from datetime import date
+from core.models import ShiftType
+
+# Цвета
+COLOR_NIGHT   = QColor("#4472C4")
+COLOR_DAILY   = QColor("#ED7D31")
+COLOR_HOLIDAY = QColor("#C00000")
+COLOR_OFF     = QColor("#FFFFFF")
+COLOR_WEEKEND = QColor("#FFF2CC")
+COLOR_HOLIDAY_HDR = QColor("#C6E0B4")
+
+DOW_RU = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+
+class ScheduleWidget(QTableWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.setSelectionMode(QTableWidget.NoSelection)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.verticalHeader().setVisible(False)
+
+    def render(self, engineers, year: int, month: int, calendar):
+        """Отрисовка графика."""
+        _, days_in_month = calendar.monthrange(year, month)
+        rows = len(engineers) + 2   # + строка Д.Н. + строка "Праздник"
+        cols = days_in_month + 1    # + колонка с именами
+
+        self.setRowCount(rows)
+        self.setColumnCount(cols)
+        self.setHorizontalHeaderLabels([""] + [str(d) for d in range(1, days_in_month + 1)])
+        self.setVerticalHeaderLabels([e.name for e in engineers] + ["Д.Н.", "Празд."])
+
+        # Ширина колонок
+        self.setColumnWidth(0, 100)
+        for c in range(1, cols):
+            self.setColumnWidth(c, 42)
+
+        font_bold = QFont()
+        font_bold.setBold(True)
+
+        # Шапка с числами
+        for d in range(1, days_in_month + 1):
+            dt = date(year, month, d)
+            item = QTableWidgetItem(str(d))
+            item.setTextAlignment(Qt.AlignCenter)
+            item.setFont(font_bold)
+            if calendar.is_holiday(dt):
+                item.setBackground(QBrush(COLOR_HOLIDAY_HDR))
+            elif calendar.is_weekend(dt):
+                item.setBackground(QBrush(COLOR_WEEKEND))
+            self.setItem(0, d, item) if False else None  # заголовки уже заданы
+
+        # Строки инженеров
+        for r, eng in enumerate(engineers, start=0):
+            # Имя
+            name_item = QTableWidgetItem(eng.name)
+            name_item.setTextAlignment(Qt.AlignCenter)
+            name_item.setFont(font_bold)
+            name_item.setBackground(QBrush(QColor("#D9E1F2")))
+            self.setItem(r, 0, name_item)
+
+            # Смены
+            for d in range(1, days_in_month + 1):
+                shift = eng.shifts[d - 1]
+                item = QTableWidgetItem(shift.value)
+                item.setTextAlignment(Qt.AlignCenter)
+                item.setForeground(QBrush(QColor("#FFFFFF")))
+                item.setFont(font_bold)
+
+                if shift == ShiftType.NIGHT:
+                    item.setBackground(QBrush(COLOR_NIGHT))
+                elif shift == ShiftType.DAILY:
+                    item.setBackground(QBrush(COLOR_DAILY))
+                elif shift == ShiftType.HOLIDAY:
+                    item.setBackground(QBrush(COLOR_HOLIDAY))
+                else:
+                    item.setBackground(QBrush(COLOR_OFF))
+
+                self.setItem(r, d, item)
+
+        # Строка дней недели
+        dow_row = len(engineers)
+        dow_item = QTableWidgetItem("Д.Н.")
+        dow_item.setTextAlignment(Qt.AlignCenter)
+        dow_item.setFont(font_bold)
+        dow_item.setBackground(QBrush(QColor("#D9E1F2")))
+        self.setItem(dow_row, 0, dow_item)
+
+        for d in range(1, days_in_month + 1):
+            dt = date(year, month, d)
+            item = QTableWidgetItem(DOW_RU[dt.weekday()])
+            item.setTextAlignment(Qt.AlignCenter)
+            item.setFont(font_bold)
+            if calendar.is_holiday(dt):
+                item.setBackground(QBrush(COLOR_HOLIDAY_HDR))
+            elif calendar.is_weekend(dt):
+                item.setBackground(QBrush(COLOR_WEEKEND))
+            self.setItem(dow_row, d, item)
+
+        # Строка праздников
+        hol_row = len(engineers) + 1
+        hol_item = QTableWidgetItem("Празд.")
+        hol_item.setTextAlignment(Qt.AlignCenter)
+        hol_item.setFont(font_bold)
+        hol_item.setBackground(QBrush(QColor("#D9E1F2")))
+        self.setItem(hol_row, 0, hol_item)
+
+        for d in range(1, days_in_month + 1):
+            dt = date(year, month, d)
+            if calendar.is_holiday(dt):
+                item = QTableWidgetItem("🎉")
+                item.setTextAlignment(Qt.AlignCenter)
+                item.setBackground(QBrush(COLOR_HOLIDAY_HDR))
+                self.setItem(hol_row, d, item)
+            else:
+                self.setItem(hol_row, d, QTableWidgetItem(""))
+ui/stats_widget.py — статистика
+python
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QVBoxLayout, QWidget
+from PySide6.QtGui import QColor, QBrush, QFont
+from PySide6.QtCore import Qt
+
+class StatsWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.layout = QVBoxLayout(self)
+
+        self.title = QLabel("📊 Статистика за месяц")
+        self.title.setFont(QFont("Arial", 12, QFont.Bold))
+        self.layout.addWidget(self.title)
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(
+            ["Инженер", "Ночных", "Суточных", "Праздничных", "Часов"]
+        )
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.layout.addWidget(self.table)
+
+        self.summary = QLabel("")
+        self.summary.setFont(QFont("Arial", 10))
+        self.layout.addWidget(self.summary)
+
+    def update_stats(self, engineers, norm_hours: float):
+        self.table.setRowCount(len(engineers))
+        total = 0.0
+
+        font_bold = QFont()
+        font_bold.setBold(True)
+
+        for r, eng in enumerate(engineers):
+            self.table.setItem(r, 0, QTableWidgetItem(eng.name))
+            self.table.setItem(r, 1, QTableWidgetItem(str(eng.night_count)))
+            self.table.setItem(r, 2, QTableWidgetItem(str(eng.daily_count)))
+            self.table.setItem(r, 3, QTableWidgetItem(str(eng.holiday_count)))
+
+            hours_item = QTableWidgetItem(f"{eng.total_hours:.0f}")
+            hours_item.setFont(font_bold)
+
+            # Подсветка отклонения
+            diff = eng.total_hours - norm_hours
+            if abs(diff) <= 2:
+                hours_item.setBackground(QBrush(QColor("#C6EFCE")))  # зелёный
+            elif diff > 2:
+                hours_item.setBackground(QBrush(QColor("#FFC7CE")))  # красный
+            else:
+                hours_item.setBackground(QBrush(QColor("#FFEB9C")))  # жёлтый
+
+            self.table.setItem(r, 4, hours_item)
+            total += eng.total_hours
+
+        # Итоговая строка
+        self.summary.setText(
+            f"Норма месяца: <b>{norm_hours:.0f} ч</b>   |   "
+            f"Итого: <b>{total:.0f} ч</b>   |   "
+            f"Отклонение от нормы: <b>{total - norm_hours * len(engineers):+.0f} ч</b>"
+        )
+ui/main_window.py — главное окно
+python
+import calendar
+from datetime import date
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QComboBox, QLabel, QFileDialog, QMessageBox, QSpinBox, QCheckBox,
+    QSplitter, QGroupBox, QFormLayout
+)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+
+from ui.schedule_widget import ScheduleWidget
+from ui.stats_widget import StatsWidget
+from core.production_calendar import ProductionCalendar
+from core.schedule_generator import ScheduleGenerator
+from core.models import ShiftType
+
+MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь",
+             "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"]
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("📋 График дежурств инженеров")
+        self.resize(1400, 800)
+
+        self.calendar = ProductionCalendar()
+        self.engineers_data = []
+        self.norm_hours = 176.0
+
+        self._build_ui()
+        self._load_default_calendar()
+
+    def _build_ui(self):
+        central = QWidget()
+        self.setCentralWidget(central)
+        main_layout = QVBoxLayout(central)
+
+        # ---------- Панель инструментов ----------
+        toolbar = QHBoxLayout()
+
+        btn_cal = QPushButton("📁 Загрузить производственный календарь")
+        btn_cal.clicked.connect(self.load_calendar)
+        toolbar.addWidget(btn_cal)
+
+        btn_settings = QPushButton("⚙️ Настройки смен")
+        btn_settings.clicked.connect(self.open_settings)
+        toolbar.addWidget(btn_settings)
+
+        btn_gen = QPushButton("🔄 Сформировать график")
+        btn_gen.clicked.connect(self.generate_schedule)
+        toolbar.addWidget(btn_gen)
+
+        btn_excel = QPushButton("💾 Экспорт в Excel")
+        btn_excel.clicked.connect(self.export_excel)
+        toolbar.addWidget(btn_excel)
+
+        btn_print = QPushButton("🖨 Печать")
+        btn_print.clicked.connect(self.print_schedule)
+        toolbar.addWidget(btn_print)
+
+        toolbar.addStretch()
+        main_layout.addLayout(toolbar)
+
+        # ---------- Панель параметров ----------
+        params = QHBoxLayout()
+
+        params.addWidget(QLabel("Месяц:"))
+        self.cb_month = QComboBox()
+        self.cb_month.addItems(MONTHS_RU)
+        self.cb_month.setCurrentIndex(date.today().month - 1)
+        params.addWidget(self.cb_month)
+
+        params.addWidget(QLabel("Год:"))
+        self.sp_year = QSpinBox()
+        self.sp_year.setRange(2020, 2100)
+        self.sp_year.setValue(date.today().year)
+        params.addWidget(self.sp_year)
+
+        params.addWidget(QLabel("Инженеров:"))
+        self.sp_count = QSpinBox()
+        self.sp_count.setRange(2, 10)
+        self.sp_count.setValue(3)
+        params.addWidget(self.sp_count)
+
+        self.chk_holidays = QCheckBox("Учитывать праздники")
+        self.chk_holidays.setChecked(True)
+        params.addWidget(self.chk_holidays)
+
+        self.chk_sum = QCheckBox("Суммированный учёт")
+        self.chk_sum.setChecked(True)
+        params.addWidget(self.chk_sum)
+
+        params.addStretch()
+        main_layout.addLayout(params)
+
+        # ---------- Таблица графика ----------
+        self.schedule_widget = ScheduleWidget()
+        main_layout.addWidget(self.schedule_widget, stretch=3)
+
+        # ---------- Статистика ----------
+        self.stats_widget = StatsWidget()
+        main_layout.addWidget(self.stats_widget, stretch=1)
+
+    # ---------- Слоты ----------
+
+    def _load_default_calendar(self):
+        """Загружаем календарь по умолчанию: только выходные (сб, вс)."""
+        year = self.sp_year.value()
+        month = self.cb_month.currentIndex() + 1
+        _, days = calendar.monthrange(year, month)
+        data = {}
+        for d in range(1, days + 1):
+            dt = date(year, month, d)
+            data[dt.isoformat()] = {
+                "weekend": dt.weekday() >= 5,
+                "holiday": False,
+                "short": False,
+            }
+        self.calendar.load_from_dict(data)
+
+    def load_calendar(self):
+        """Загрузка производственного календаря из JSON."""
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Выберите производственный календарь",
+            "", "JSON files (*.json);;All files (*)"
+        )
+        if not path:
+            return
+        try:
+            self.calendar.load_from_json(path)
+            QMessageBox.information(self, "Успех", "Календарь загружен!")
+            self.generate_schedule()
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", f"Не удалось загрузить:\n{e}")
+
+    def open_settings(self):
+        QMessageBox.information(
+            self, "Настройки смен",
+            "Здесь можно настроить:\n"
+            "• Длительность ночной смены (по умолч. 15 ч)\n"
+            "• Длительность суточной смены (по умолч. 24 ч)\n"
+            "• Время начала/окончания\n"
+            "• Правила распределения праздников"
+        )
+
+    def generate_schedule(self):
+        """Генерация графика."""
+        year = self.sp_year.value()
+        month = self.cb_month.currentIndex() + 1
+        count = self.sp_count.value()
+        engineers = [f"Инженер {chr(64 + i)}" for i in range(1, count + 1)]
+
+        gen = ScheduleGenerator(
+            year=year, month=month,
+            engineers=engineers,
+            calendar=self.calendar,
+            night_hours=15.0,
+            daily_hours=24.0,
+        )
+        self.engineers_data = gen.generate()
+        self.norm_hours = self.calendar.get_norm_hours(year, month)
+
+        self.schedule_widget.render(
+            self.engineers_data, year, month, self.calendar
+        )
+        self.stats_widget.update_stats(self.engineers_data, self.norm_hours)
+
+    def export_excel(self):
+        if not self.engineers_data:
+            QMessageBox.warning(self, "Нет данных", "Сначала сформируйте график.")
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Сохранить как", "grafik.xlsx", "Excel (*.xlsx)"
+        )
+        if not path:
+            return
+        try:
+            from io_.excel_export import export_to_excel
+            export_to_excel(
+                path, self.engineers_data,
+                self.sp_year.value(),
+                self.cb_month.currentIndex() + 1,
+                self.calendar
+            )
+            QMessageBox.information(self, "Готово", f"Сохранено: {path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", str(e))
+
+    def print_schedule(self):
+        QMessageBox.information(self, "Печать", "Функция в разработке.")
+io_/excel_export.py — экспорт в Excel
+python
+import openpyxl
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from datetime import date
+import calendar as cal
+from core.models import ShiftType
+
+def export_to_excel(path, engineers, year, month, calendar):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "График"
+
+    _, days_in_month = cal.monthrange(year, month)
+
+    # Стили
+    night_fill   = PatternFill("solid", fgColor="4472C4")
+    daily_fill   = PatternFill("solid", fgColor="ED7D31")
+    holiday_fill = PatternFill("solid", fgColor="C00000")
+    off_fill     = PatternFill("solid", fgColor="FFFFFF")
+    hdr_fill     = PatternFill("solid", fgColor="305496")
+    name_fill    = PatternFill("solid", fgColor="D9E1F2")
+    white_font   = Font(color="FFFFFF", bold=True)
+    bold_font    = Font(bold=True)
+    center       = Alignment(horizontal="center", vertical="center")
+    thin         = Side(style="thin", color="999999")
+    border       = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    # Заголовок
+    ws.cell(1, 1, "Инженер").fill = hdr_fill
+    ws.cell(1, 1).font = white_font
+    ws.cell(1, 1).alignment = center
+    ws.cell(1, 1).border = border
+
+    for d in range(1, days_in_month + 1):
+        c = ws.cell(1, d + 1, d)
+        c.fill = hdr_fill
+        c.font = white_font
+        c.alignment = center
+        c.border = border
+
+    # Строки инженеров
+    for r, eng in enumerate(engineers, start=2):
+        nc = ws.cell(r, 1, eng.name)
+        nc.fill = name_fill
+        nc.font = bold_font
+        nc.alignment = center
+        nc.border = border        for d in range(1, days_in_month + 1):
+            shift = eng.shifts[d - 1]
+            c = ws.cell(r, d + 1)
+            c.value = shift.value
+            c.alignment = center
+            c.border = border
+
+            if shift == ShiftType.NIGHT:
+                c.fill = night_fill; c.font = white_font
+            elif shift == ShiftType.DAILY:
+                c.fill = daily_fill; c.font = white_font
+            elif shift == ShiftType.HOLIDAY:
+                c.fill = holiday_fill; c.font = white_font
+            else:
+                c.fill = off_fill
+
+    # Строка Д.Н.
+    dow_row = len(engineers) + 2
+    ws.cell(dow_row, 1, "Д.Н.").fill = name_fill
+    ws.cell(dow_row, 1).font = bold_font
+    ws.cell(dow_row, 1).alignment = center
+    ws.cell(dow_row, 1).border = border
+
+    dow_ru = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"]
+    for d in range(1, days_in_month + 1):
+        dt = date(year, month, d)
+        c = ws.cell(dow_row, d + 1, dow_ru[dt.weekday()])
+        c.alignment = center
+        c.font = bold_font
+        c.border = border
+
+    # Ширина
+    ws.column_dimensions["A"].width = 14
+    for i in range(2, days_in_month + 2):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = 4.5
+
+    ws.freeze_panes = "B2"
+    wb.save(path)
+📁 Формат производственного календаря (JSON)
+json
+{
+  "2026-10-01": {"weekend": false, "holiday": false, "short": false},
+  "2026-10-02": {"weekend": false, "holiday": false, "short": false},
+  "2026-10-03": {"weekend": true,  "holiday": false, "short": false},
+  "2026-10-04": {"weekend": true,  "holiday": false, "short": false},
+  "2026-10-05": {"weekend": false, "holiday": true,  "short": false},
+  "2026-10-06": {"weekend": false, "holiday": true,  "short": false},
+  "2026-11-04": {"weekend": false, "holiday": true,  "short": false}
+}
+Как получить производственный календарь РФ
+Официальный источник: consultant.ru
+
+API: isdayoff.ru — бесплатный, отдаёт JSON
+
+Ручное заполнение — через диалог в приложении (можно добавить)
+
+Пример загрузки с isdayoff.ru (можно добавить в код)
+python
+import requests
+
+def load_from_isdayoff(year: int):
+    url = f"https://isdayoff.ru/api/getdata?year={year}&cc=ru"
+    response = requests.get(url)
+    # Ответ: строка из 365 символов: 0 — рабочий, 1 — выходной, 2 — сокращённый
+    data = {}
+    d = date(year, 1, 1)
+    for ch in response.text:
+        data[d.isoformat()] = {
+            "weekend": ch == "1",
+            "holiday": ch == "1" and d.weekday() < 5,  # праздник в будень
+            "short": ch == "2",
+        }
+        d += timedelta(days=1)
+    return data

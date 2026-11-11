@@ -1,0 +1,24 @@
+{
+  "staff": [
+    { "name": "Инженер A", "role": "duty", "position": "" },
+    { "name": "Инженер B", "role": "duty", "position": "" },
+    { "name": "Инженер C", "role": "duty", "position": "" },
+    { "name": "Инженер D", "role": "duty", "position": "" }
+  ],
+  "settings": {
+    "year": 2026,
+    "month": 11,
+    "mode": "rotation",
+    "anchor": "2026-11-10",
+    "useHolidays": true,
+    "nightHours": 15,
+    "dailyHours": 24,
+    "workdayHours": 8,
+    "dutyCount": 4,
+    "extraCount": 0
+  },
+  "customCalendars": {},
+  "schedule": null,
+  "dirty": false,
+  "updatedAt": "2026-11-10T00:00:00.000Z"
+}

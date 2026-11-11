@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>График дежурств инженеров</title>
+  <meta name="description" content="Производственный календарь, ротация 1/3, доп. инженеры и 5-дневный график отдела.">
+  <link rel="stylesheet" href="./web/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div>
+        <h1>График дежурств инженеров</h1>
+        <p>Ротация 1/3 · ночные и суточные смены · 5-дневный график отдела</p>
+      </div>
+      <span class="app-badge" id="app-badge">Веб-версия · Neon</span>
+    </div>
+  </header>
+
+  <main class="app">
+    <section class="card controls" aria-label="Параметры графика">
+      <div class="toolbar">
+        <button class="btn" id="btn-export" type="button">Экспорт в Excel</button>
+        <button class="btn" id="btn-settings" type="button">Настройки смен</button>
+        <button class="btn" id="btn-calendar" type="button">Загрузить календарь</button>
+        <span class="toolbar-status" id="load-state" aria-live="polite"></span>
+      </div>
+
+      <div class="params">
+        <label class="field field--month">
+          <span>Месяц</span>
+          <select id="in-month"></select>
+        </label>
+        <label class="field field--year">
+          <span>Год</span>
+          <input id="in-year" type="number" min="2020" max="2100" step="1" inputmode="numeric">
+        </label>
+        <label class="field field--small">
+          <span>Суточников</span>
+          <input id="in-duty-count" type="number" min="2" max="20" step="1" inputmode="numeric">
+        </label>
+        <label class="field field--small">
+          <span>Доп. инженеров</span>
+          <input id="in-extra-count" type="number" min="0" max="20" step="1" inputmode="numeric">
+        </label>
+        <label class="field field--mode">
+          <span>График</span>
+          <select id="in-mode">
+            <option value="rotation">1/3 — сутки через трое</option>
+            <option value="night_weekend">Н/С — ночь в будни, сутки в выходные</option>
+          </select>
+        </label>
+        <label class="field field--anchor" id="anchor-field">
+          <span>Начало цикла</span>
+          <input id="in-anchor" type="date" min="2020-01-01" max="2100-12-31">
+        </label>
+        <label class="check">
+          <input id="in-holidays" type="checkbox">
+          <span>Учитывать праздники</span>
+        </label>
+      </div>
+
+      <p class="conditions" id="conditions"></p>
+      <p class="calendar-note" id="calendar-note"></p>
+    </section>
+
+    <section class="card schedule-card" aria-label="График">
+      <div class="schedule-wrap">
+        <table class="schedule-table" id="schedule-table" aria-label="График смен">
+          <thead>
+            <tr><th class="name-head">Инженер</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="loading-cell" colspan="2">Загрузка данных…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="schedule-actions">
+        <button class="btn" id="btn-add" type="button">+ Добавить инженера</button>
+        <span class="hint">Клик по имени — роль, должность и удаление. Клик по смене и Delete — выходной; правый клик — тип смены или переработка; перетаскивание — обмен датами.</span>
+      </div>
+
+      <div class="validation" id="validation" aria-live="polite"></div>
+
+      <div class="legend" aria-label="Обозначения">
+        <span class="legend-item"><i class="swatch shift-night"></i>Ночная (Н)</span>
+        <span class="legend-item"><i class="swatch shift-daily"></i>Суточная (С)</span>
+        <span class="legend-item"><i class="swatch shift-morning"></i>Утро (У)</span>
+        <span class="legend-item"><i class="swatch shift-day"></i>День (Д)</span>
+        <span class="legend-item"><i class="swatch shift-evening"></i>Вечер (В)</span>
+        <span class="legend-item"><i class="swatch shift-office"></i>Офис (о)</span>
+        <span class="legend-item"><i class="swatch shift-remote"></i>Удалёнка (у)</span>
+        <span class="legend-item"><i class="swatch shift-trip"></i>Выезд (в)</span>
+        <span class="legend-item"><i class="swatch shift-vacation"></i>Отпуск (Отп)</span>
+        <span class="legend-item"><i class="legend-holiday">★</i>Праздник</span>
+        <span class="legend-item"><i class="legend-overtime">+4</i>Переработка</span>
+        <span class="legend-item"><i class="swatch weekend"></i>Выходной</span>
+      </div>
+    </section>
+
+    <section class="card stats-card" aria-label="Статистика">
+      <h2>Статистика за месяц</h2>
+      <div class="stats-wrap">
+        <table class="stats-table" id="stats-table">
+          <thead>
+            <tr>
+              <th>Инженер</th>
+              <th>Ночных</th>
+              <th>Суточных</th>
+              <th>Отпуск</th>
+              <th>5-дн.</th>
+              <th>Часов</th>
+              <th>Переработка</th>
+              <th>Отклонение</th>
+            </tr>
+          </thead>
+          <tbody id="stats-body"></tbody>
+        </table>
+      </div>
+      <p class="stats-summary" id="stats-summary"></p>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Общий график хранится в Neon и сохраняется автоматически. При первом входе в новом браузере приложение попросит общий пароль. Календарь — <code>data/calendar_ГОД.json</code>.</p>
+  </footer>
+
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+  <div class="cell-menu" id="cell-menu" role="menu" hidden></div>
+  <input id="calendar-file" type="file" accept=".json,application/json" hidden>
+
+  <dialog class="dialog" id="engineer-dialog">
+    <form id="engineer-form">
+      <h2 id="engineer-title">Сотрудник отдела</h2>
+      <label class="field">
+        <span>Имя</span>
+        <input id="eng-name" type="text" maxlength="80" required autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Роль</span>
+        <select id="eng-role">
+          <option value="duty">Суточник (1/3)</option>
+          <option value="five_day">5-дневный график</option>
+          <option value="extra">Доп. инженер (подмена)</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Должность</span>
+        <input id="eng-position" type="text" maxlength="80" placeholder="например, ведущий инженер" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Телефон</span>
+        <input id="eng-phone" type="tel" maxlength="40" placeholder="+7 900 000-00-00" autocomplete="off">
+      </label>
+      <label class="field" id="eng-overtime-field">
+        <span>Переработка за месяц, ч</span>
+        <input id="eng-overtime" type="number" min="0" max="400" step="0.5" inputmode="decimal">
+      </label>
+      <div class="dialog-actions dialog-actions--secondary" id="eng-secondary-actions" hidden>
+        <button class="btn" id="eng-regenerate" type="button" hidden>Сформировать график заново</button>
+        <button class="btn" id="eng-vacation" type="button" hidden>Назначить отпуск</button>
+      </div>
+      <div class="vacation-panel" id="vacation-panel" hidden>
+        <label class="field">
+          <span>Отпуск с</span>
+          <input id="vac-start" type="date">
+        </label>
+        <label class="field">
+          <span>по</span>
+          <input id="vac-end" type="date">
+        </label>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="vac-apply" type="button">Поставить отпуск</button>
+          <span class="spacer"></span>
+          <button class="btn" id="vac-cancel" type="button">Скрыть</button>
+        </div>
+        <p class="dialog-hint" id="vac-hint"></p>
+      </div>
+      <p class="dialog-hint">5-дневный график заполняется офисом по будням; тип дня — о / у / в — меняется правым кликом по ячейке. «Сформировать график заново» пересобирает строку только этого сотрудника в открытом месяце.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-danger" id="eng-delete" type="button" hidden>Удалить</button>
+        <span class="spacer"></span>
+        <button class="btn" id="eng-cancel" type="button">Отмена</button>
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog dialog--narrow" id="overtime-dialog">
+    <form id="overtime-form">
+      <h2>Переработка</h2>
+      <p class="dialog-hint" id="overtime-subject"></p>
+      <label class="field">
+        <span>Часы сверх смены</span>
+        <input id="overtime-hours" type="number" min="0" max="24" step="0.5" inputmode="decimal" required>
+      </label>
+      <p class="dialog-hint">Часы прибавляются к итогу месяца и колонке «Переработка». 0 — убрать переработку за этот день.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-danger" id="overtime-remove" type="button">Убрать</button>
+        <span class="spacer"></span>
+        <button class="btn" id="overtime-cancel" type="button">Отмена</button>
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="neon-dialog">
+    <form id="neon-form">
+      <h2>Общая база Neon</h2>
+      <p class="dialog-hint">Введите общий пароль — график будет читаться и сохраняться в Neon автоматически. Пароль хранится только в этом браузере.</p>
+      <label class="field">
+        <span>Общий пароль</span>
+        <input id="neon-password" type="password" autocomplete="current-password">
+      </label>
+      <details class="neon-advanced">
+        <summary>Настройки подключения</summary>
+        <label class="field">
+          <span>Data API URL</span>
+          <input id="neon-data-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://…apirest.…neon.tech/neondb/rest/v1">
+        </label>
+        <label class="field">
+          <span>Auth URL</span>
+          <input id="neon-auth-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://…neonauth.…neon.tech/neondb/auth">
+        </label>
+      </details>
+      <label class="check">
+        <input id="neon-autosave" type="checkbox">
+        <span>Автосохранение правок в Neon</span>
+      </label>
+      <p class="dialog-hint neon-status" id="neon-status"></p>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="neon-load" type="button">Загрузить из Neon</button>
+        <button class="btn" id="neon-save" type="button">Сохранить в Neon</button>
+        <button class="btn" id="neon-close" type="button">Закрыть</button>
+        <button class="btn btn-primary" type="submit">Подключить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog dialog--narrow" id="settings-dialog">
+    <form id="settings-form">
+      <h2>Настройки смен</h2>
+      <label class="field">
+        <span>Ночная смена, ч</span>
+        <input id="set-night" type="number" min="1" max="24" step="0.5" required>
+      </label>
+      <label class="field">
+        <span>Суточная смена, ч</span>
+        <input id="set-daily" type="number" min="1" max="24" step="0.5" required>
+      </label>
+      <label class="field">
+        <span>Рабочий день 5-дневки, ч</span>
+        <input id="set-workday" type="number" min="1" max="24" step="0.5" required>
+      </label>
+      <p class="dialog-hint">Часы влияют на статистику и переработку. График будет сформирован заново.</p>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button class="btn" id="set-cancel" type="button">Отмена</button>
+        <button class="btn btn-primary" type="submit">Применить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="./web/app.js"></script>
+</body>
+</html>

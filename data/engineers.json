@@ -1,0 +1,24 @@
+{
+  "engineers": [
+    {
+      "name": "Инженер A",
+      "role": "duty",
+      "position": ""
+    },
+    {
+      "name": "Инженер B",
+      "role": "duty",
+      "position": ""
+    },
+    {
+      "name": "Инженер C",
+      "role": "duty",
+      "position": ""
+    },
+    {
+      "name": "Инженер D",
+      "role": "duty",
+      "position": ""
+    }
+  ]
+}

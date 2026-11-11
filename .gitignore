@@ -1,11 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Node
 node_modules/
-.next/
-out/
-.vercel/
 
-.env
-.env.local
-.env*.local
+# Локальное состояние приложения
+data/settings.json
+grafik.xlsx
+*.xls
 
-*.tsbuildinfo
-next-env.d.ts
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
