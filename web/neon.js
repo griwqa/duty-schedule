@@ -1,13 +1,20 @@
 const CONFIG_KEY = "grafik-neon-v1";
 
-function apiBase() {
+// Mirrors of the sync proxy. The same-origin /api on the Vercel app is tried first.
+const SYNC_ENDPOINTS = ["https://duty-schedule-phi.vercel.app/api"];
+
+function apiBases() {
+  const bases = [];
   if (
     typeof location !== "undefined" &&
     location.hostname === "duty-schedule-phi.vercel.app"
   ) {
-    return `${location.origin}/api`;
+    bases.push(`${location.origin}/api`);
   }
-  return "https://duty-schedule-phi.vercel.app/api";
+  for (const base of SYNC_ENDPOINTS) {
+    if (!bases.includes(base)) bases.push(base);
+  }
+  return bases;
 }
 
 function timeoutSignal(ms) {
@@ -16,8 +23,8 @@ function timeoutSignal(ms) {
     : undefined;
 }
 
-async function apiRequest(path, { method = "GET", body } = {}) {
-  const response = await fetch(`${apiBase()}${path}`, {
+async function apiRequestBase(base, path, { method = "GET", body } = {}) {
+  const response = await fetch(`${base}${path}`, {
     method,
     headers: {
       Accept: "application/json",
@@ -48,8 +55,18 @@ async function apiRequest(path, { method = "GET", body } = {}) {
   return data;
 }
 
-export function neonConfigured() {
-  return true;
+async function apiRequest(path, options) {
+  let lastError = null;
+  for (const base of apiBases()) {
+    try {
+      return await apiRequestBase(base, path, options);
+    } catch (error) {
+      if (error.status === 400 || error.status === 401) throw error;
+      lastError = error;
+    }
+  }
+  if (lastError?.status) throw lastError;
+  throw new Error("нет связи с сервером синхронизации");
 }
 
 export function readNeonConfig() {

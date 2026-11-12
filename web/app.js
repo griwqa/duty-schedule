@@ -22,7 +22,6 @@ import {
   validateSchedule,
 } from "./core.js";
 import {
-  neonConfigured,
   neonLoadSchedule,
   neonSaveSchedule,
   readNeonConfig,
@@ -478,7 +477,7 @@ function toast(message, type = "info", duration = 3400) {
 function setBadge(source) {
   els.appBadge.textContent =
     source === "neon"
-      ? "Веб-версия · данные в Neon"
+      ? "Веб-версия · данные на сервере"
       : "Веб-версия · локальные данные";
 }
 
@@ -490,12 +489,12 @@ function updateStatus() {
   const parts = [];
   if (state.accessRole === "view") parts.push("режим просмотра");
   if (state.source === "neon") {
-    parts.push(state.neonSaving ? "запись в Neon…" : "источник: Neon");
+    parts.push(state.neonSaving ? "запись на сервер…" : "источник: сервер синхронизации");
     if (state.neonUpdatedAt) parts.push(formatStamp(state.neonUpdatedAt));
-    if (state.neonDirty) parts.push("не сохранено в Neon");
+    if (state.neonDirty) parts.push("не сохранено на сервере");
   } else {
     parts.push("источник: браузер");
-    if (state.neon.password) parts.push("Neon подключён");
+    if (state.neon.password) parts.push("синхронизация подключена");
   }
   if (state.dirty && state.source !== "neon") parts.push("ручные правки");
   els.loadState.textContent = parts.join(" · ");
@@ -678,15 +677,14 @@ function closeLoginDialog() {
 }
 
 async function verifyEditPassword(password) {
-  if (!neonConfigured(state.neon)) {
-    throw new Error("Подключение к Neon не настроено");
-  }
   let latest;
   try {
     latest = await neonLoadSchedule(state.neon);
   } catch {
     state.neonReadOk = false;
-    throw new Error("нет связи с Neon — повторите вход позже");
+    throw new Error(
+      "нет связи с сервером синхронизации — проверьте интернет и повторите вход",
+    );
   }
   state.neonError = "";
   state.neonReadOk = true;
@@ -810,13 +808,9 @@ async function onAccessSubmit(event) {
 }
 
 async function readNeonState({ silent = false } = {}) {
-  if (!neonConfigured(state.neon)) {
-    if (!silent) toast("Подключение к Neon не настроено.", "error");
-    return false;
-  }
   if (hasManualSchedules() && !silent) {
     const ok = window.confirm(
-      "В одном из месяцев есть ручные правки. Загрузить данные из Neon?\nРучные правки будут потеряны.",
+      "В одном из месяцев есть ручные правки. Загрузить график с сервера?\nРучные правки будут потеряны.",
     );
     if (!ok) return false;
   }
@@ -833,7 +827,7 @@ async function readNeonState({ silent = false } = {}) {
     state.neonReadOk = false;
     state.neonSnapshot = null;
     if (!silent) {
-      toast(`Не удалось загрузить из Neon: ${error.message}`, "error", 8000);
+      toast(`Не удалось загрузить график: ${error.message}`, "error", 8000);
     }
     return false;
   } finally {
@@ -843,7 +837,7 @@ async function readNeonState({ silent = false } = {}) {
   if (!result?.payload) {
     if (!silent) {
       toast(
-        "В Neon пока нет сохранённого графика. Он будет записан после входа с паролем редактирования.",
+        "На сервере пока нет сохранённого графика. Он будет записан после входа с паролем редактирования.",
         "info",
         6000,
       );
@@ -856,12 +850,11 @@ async function readNeonState({ silent = false } = {}) {
   state.neon.lastUpdatedAt = state.neonUpdatedAt;
   writeNeonConfig(state.neon);
   updateStatus();
-  if (!silent) toast("График загружен из Neon.", "success");
+  if (!silent) toast("График загружен с сервера.", "success");
   return true;
 }
 
 async function refreshNeonState({ silent = true } = {}) {
-  if (!neonConfigured(state.neon)) return false;
   let result;
   try {
     result = await neonLoadSchedule(state.neon);
@@ -872,7 +865,7 @@ async function refreshNeonState({ silent = true } = {}) {
     state.neonError = error.message;
     state.neonReadOk = false;
     if (!silent) {
-      toast(`Не удалось загрузить из Neon: ${error.message}`, "error", 8000);
+      toast(`Не удалось загрузить график: ${error.message}`, "error", 8000);
     }
     return false;
   }
@@ -893,7 +886,7 @@ async function saveToNeon({ silent = false } = {}) {
     if (!silent) toast("Сначала сформируйте график.", "error");
     return false;
   }
-  if (!neonConfigured(state.neon) || !state.neon.password) {
+  if (!state.neon.password) {
     if (!silent) toast("Войдите с паролем редактирования.", "info");
     return false;
   }
@@ -916,8 +909,8 @@ async function saveToNeon({ silent = false } = {}) {
       writeNeonConfig(state.neon);
     }
     const message = invalidPassword
-      ? "Неверный пароль для записи в Neon. Войдите заново."
-      : `Не удалось сохранить в Neon: ${error.message}`;
+      ? "Неверный пароль для записи на сервер. Войдите заново."
+      : `Не удалось сохранить график: ${error.message}`;
     toast(message, "error", 8000);
     if (invalidPassword) {
       lockApp({ farewell: false });
@@ -941,14 +934,14 @@ async function saveToNeon({ silent = false } = {}) {
   setBadge("neon");
   updateStatus();
   writeStorage();
-  if (!silent) toast("График сохранён в Neon.", "success");
+  if (!silent) toast("График сохранён на сервере.", "success");
   return true;
 }
 
 function scheduleNeonSave() {
   if (!state.neonReady || state.readOnly || state.accessRole !== "edit") return;
   if (!state.neon.autosave || !state.neon.password) return;
-  if (!neonConfigured(state.neon) || !state.neonDirty) return;
+  if (!state.neonDirty) return;
   if (state.neonTimer) window.clearTimeout(state.neonTimer);
   state.neonTimer = window.setTimeout(() => {
     state.neonTimer = 0;
@@ -1348,7 +1341,7 @@ async function runGenerateMonth({ notify }) {
     };
     state.dirty = false;
     archiveActiveSchedule();
-    if (state.source !== "neon" || !neonConfigured(state.neon)) {
+    if (state.source !== "neon") {
       state.source = "local";
     }
     setBadge(state.source);
