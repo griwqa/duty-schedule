@@ -358,6 +358,7 @@ const state = {
   neonTimer: 0,
   neonReadOk: false,
   neonSnapshot: null,
+  neonMirror: false,
   revision: 0,
   navToken: 0,
   generation: null,
@@ -489,7 +490,8 @@ function updateStatus() {
   const parts = [];
   if (state.accessRole === "view") parts.push("режим просмотра");
   if (state.source === "neon") {
-    parts.push(state.neonSaving ? "запись на сервер…" : "источник: сервер синхронизации");
+    const mirrorNote = state.neonMirror ? "резервное зеркало" : "сервер синхронизации";
+    parts.push(state.neonSaving ? "запись на сервер…" : `источник: ${mirrorNote}`);
     if (state.neonUpdatedAt) parts.push(formatStamp(state.neonUpdatedAt));
     if (state.neonDirty) parts.push("не сохранено на сервере");
   } else {
@@ -689,6 +691,7 @@ async function verifyEditPassword(password) {
   state.neonError = "";
   state.neonReadOk = true;
   state.neonSnapshot = latest?.payload || null;
+  state.neonMirror = Boolean(latest?.mirror);
   const payload = latest?.payload
     ? { ...latest.payload, dirty: false }
     : { ...statePayload(), dirty: false };
@@ -822,6 +825,7 @@ async function readNeonState({ silent = false } = {}) {
     state.neonError = "";
     state.neonReadOk = true;
     state.neonSnapshot = result?.payload || null;
+    state.neonMirror = Boolean(result?.mirror);
   } catch (error) {
     state.neonError = error.message;
     state.neonReadOk = false;
@@ -861,6 +865,7 @@ async function refreshNeonState({ silent = true } = {}) {
     state.neonError = "";
     state.neonReadOk = true;
     state.neonSnapshot = result?.payload || null;
+    state.neonMirror = Boolean(result?.mirror);
   } catch (error) {
     state.neonError = error.message;
     state.neonReadOk = false;
