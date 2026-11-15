@@ -1,9 +1,9 @@
+// Прокси обслуживает только свою же копию приложения на Vercel: остальные
+// зеркала работают с Supabase напрямую и записывать в Neon не должны.
 const ALLOWED_ORIGINS = new Set([
-  "https://gmarkov.gitverse.site",
-  "https://griwqa.github.io",
   "https://duty-schedule-phi.vercel.app",
-  "http://localhost:8765",
-  "http://127.0.0.1:8765",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
 ]);
 
 const NEON_DATA_API =
