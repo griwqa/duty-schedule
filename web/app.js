@@ -27,6 +27,7 @@ import {
   readNeonConfig,
   writeNeonConfig,
 } from "./neon.js";
+import { Sheet, BORDER_THIN, BORDER_HOLIDAY } from "./xlsx.js";
 
 const MONTHS_RU = [
   "Январь",
@@ -1040,7 +1041,8 @@ function syncControls() {
 }
 
 function setControlsReadOnly(readOnly) {
-  for (const control of [els.inMonth, els.inYear, els.inAnchor, els.inHolidays]) {
+  // Месяц и год остаются доступными: просмотр другого месяца правок не делает.
+  for (const control of [els.inAnchor, els.inHolidays]) {
     if (control) control.disabled = readOnly;
   }
   for (const button of [
@@ -1381,9 +1383,40 @@ async function activateMonth({ notify = false } = {}) {
   return generateMonth({ notify });
 }
 
+// Просмотр другого месяца в закрытом на правку режиме: показываем только то,
+// что уже сохранено в общем графике. Новый месяц не формируем — иначе на
+// экране появился бы график, которого нет на сервере.
+async function showArchivedMonth() {
+  const year = clampInt(els.inYear.value, 2020, 2100, state.settings.year);
+  const month = clampInt(els.inMonth.value, 1, 12, state.settings.month);
+  const saved = state.schedules[monthKey(year, month)];
+  if (saved) {
+    // Календарь года нужен до сборки строки: от него зависят норма часов и
+    // красные рамки праздников.
+    setBusy(true);
+    try {
+      await ensureCalendarsAround(year);
+    } finally {
+      setBusy(false);
+    }
+    if (restoreSavedSchedule(saved)) {
+      state.dirty = false;
+      state.settings.year = year;
+      state.settings.month = month;
+      syncControls();
+      renderAll();
+      updateCalendarNote();
+      updateStatus();
+      return;
+    }
+  }
+  toast(`${MONTHS_RU[month - 1]} ${year} ещё не сформирован.`, "info", 6000);
+  syncControls();
+}
+
 async function onPeriodChange() {
   if (state.readOnly) {
-    syncControls();
+    await showArchivedMonth();
     return;
   }
   const token = (state.navToken += 1);
@@ -2570,61 +2603,63 @@ function exportExcel() {
   }
   const total = daysInMonth(schedule.year, schedule.month);
   const calendar = schedule.calendar;
-  const base =
-    "border:1px solid #999999;text-align:center;vertical-align:middle;font-family:Calibri,Arial,sans-serif;font-size:11pt;";
-  const header = `${base}background:#305496;color:#FFFFFF;font-weight:bold;`;
+  const phoneOf = (engineer) =>
+    String(
+      engineer.phone ||
+        state.staff.find((member) => member.name === engineer.name)?.phone ||
+        "",
+    ).trim();
 
-  let html =
-    `<html><head><meta charset="utf-8">` +
-    "<style>table{border-collapse:collapse;} td{height:24px;}</style>" +
-    `</head><body>` +
-    `<table><tr><td style="border:none;vertical-align:top;">` +
-    "<table><tr>" +
-    `<td style="${header}">Инженер</td>`;
-  for (let day = 1; day <= total; day += 1) {
-    html += `<td style="${header}">${day}</td>`;
-  }
-  html += "</tr>";
+  const head = { fill: "#305496", color: "#FFFFFF", bold: true, border: BORDER_THIN };
+  const statsHead = { fill: "#D9E1F2", bold: true, border: BORDER_THIN };
+  const sheet = new Sheet("График");
 
+  sheet.freezeAt(3, 2);
+  sheet.width(1, 18);
+  sheet.width(2, 16);
+  for (let day = 1; day <= total; day += 1) sheet.width(2 + day, 4.5);
+  sheet.height(1, 18);
+  sheet.set(1, 1, "Инженер", head);
+  sheet.set(1, 2, "Телефон", head);
+  for (let day = 1; day <= total; day += 1) sheet.set(1, 2 + day, day, head);
+
+  let row = 2;
   for (const engineer of schedule.engineers) {
-    const nameStyle = `${base}background:${NAME_FILL[engineer.role] || "#D9E1F2"};font-weight:bold;`;
-    html += `<tr><td style="${nameStyle}">${esc(engineer.name)}</td>`;
+    sheet.set(row, 1, engineer.name, {
+      fill: NAME_FILL[engineer.role] || "#D9E1F2",
+      bold: true,
+      border: BORDER_THIN,
+    });
+    sheet.set(row, 2, phoneOf(engineer), { border: BORDER_THIN, align: "left" });
     for (let day = 1; day <= total; day += 1) {
       const iso = isoDate(schedule.year, schedule.month, day);
       const shift = engineer.shifts[day - 1] || SHIFT.OFF;
       const overtime = Number(engineer.overtimeByDay?.[day - 1]) || 0;
       const fill = SHIFT_FILL[shift] || SHIFT_FILL[splitShift(shift)[0]];
-      let style = base;
-      if (fill) {
-        style += `background:${fill[0]};color:${fill[1]};font-weight:bold;`;
-      } else if (calendar.isWeekend(iso)) {
-        style += "background:#FFF2CC;";
-      } else {
-        style += "background:#FFFFFF;";
-      }
-      if (state.settings.useHolidays && calendar.isHoliday(iso)) {
-        style += "border:2px solid #C00000;";
-      }
       const label = overtime > 0 ? `${shift} +${formatNumber(overtime)}`.trim() : shift;
-      html += `<td style="${style}">${esc(label)}</td>`;
+      sheet.set(row, 2 + day, label, {
+        fill: fill ? fill[0] : calendar.isWeekend(iso) ? "#FFF2CC" : "#FFFFFF",
+        color: fill ? fill[1] : null,
+        bold: Boolean(fill),
+        border:
+          state.settings.useHolidays && calendar.isHoliday(iso) ? BORDER_HOLIDAY : BORDER_THIN,
+      });
     }
-    html += "</tr>";
+    row += 1;
   }
 
-  html += `<tr><td style="${base}background:#D9E1F2;font-weight:bold;">Д.Н.</td>`;
+  sheet.set(row, 1, "Д.Н.", statsHead);
+  sheet.set(row, 2, "", { fill: "#D9E1F2", border: BORDER_THIN });
   for (let day = 1; day <= total; day += 1) {
     const iso = isoDate(schedule.year, schedule.month, day);
     const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
-    const weekend = calendar.isWeekend(iso);
-    const dow = DOW_RU[(isoWeekday(iso) + 6) % 7];
-    const style = holiday
-      ? `${base}background:#C00000;color:#FFFFFF;font-weight:bold;`
-      : weekend
-        ? `${base}background:#FFF2CC;font-weight:bold;`
-        : `${base}font-weight:bold;`;
-    html += `<td style="${style}">${dow}</td>`;
+    sheet.set(row, 2 + day, DOW_RU[(isoWeekday(iso) + 6) % 7], {
+      bold: true,
+      fill: holiday ? "#C00000" : calendar.isWeekend(iso) ? "#FFF2CC" : "#FFFFFF",
+      color: holiday ? "#FFFFFF" : null,
+      border: BORDER_THIN,
+    });
   }
-  html += "</tr></table>";
 
   const statsHeaders = [
     "Инженер",
@@ -2640,18 +2675,15 @@ function exportExcel() {
     "Отклонение",
     "Доплата, ₽",
   ];
-  html +=
-    `</td><td style="border:none;width:24px;"></td>` +
-    `<td style="border:none;vertical-align:top;">` +
-    "<table>" +
-    `<tr><td colspan="${statsHeaders.length}" style="border:none;text-align:left;font-family:Calibri,Arial,sans-serif;font-size:11pt;font-weight:bold;">Статистика</td></tr>`;
+  const statsColumn = 4 + total;
+  sheet.width(statsColumn, 18);
+  statsHeaders.slice(1).forEach((label, index) => sheet.width(statsColumn + 1 + index, 11));
 
-  const statsHeader = `${base}background:#D9E1F2;font-weight:bold;`;
-  html += "<tr>";
-  for (const label of statsHeaders) {
-    html += `<td style="${statsHeader}">${label}</td>`;
-  }
-  html += "</tr>";
+  let statsRow = row + 2;
+  sheet.set(statsRow, statsColumn, "Статистика", { bold: true });
+  statsHeaders.forEach((label, index) =>
+    sheet.set(statsRow + 1, statsColumn + index, label, statsHead),
+  );
 
   const totals = {
     morning: 0,
@@ -2666,6 +2698,7 @@ function exportExcel() {
     deviation: 0,
     pay: 0,
   };
+  statsRow += 2;
   for (const engineer of engineerStats(schedule.engineers)) {
     const overtime = engineer.totalHours - schedule.normHours;
     const five = engineer.officeCount + engineer.remoteCount + engineer.tripCount;
@@ -2693,14 +2726,19 @@ function exportExcel() {
       engineer.totalHours,
       engineer.overtimeTotal || 0,
       overtime,
-      Math.round(pay),
+      pay,
     ];
-    for (const value of values) {
-      html += `<td style="${base}">${esc(typeof value === "number" ? Math.round(value) : value)}</td>`;
-    }
-    html += "</tr>";
+    values.forEach((value, index) =>
+      sheet.set(
+        statsRow,
+        statsColumn + index,
+        typeof value === "number" ? Math.round(value) : value,
+        index ? { border: BORDER_THIN } : { bold: true, border: BORDER_THIN },
+      ),
+    );
+    statsRow += 1;
   }
-  const totalValues = [
+  [
     "Итого",
     totals.morning,
     totals.day,
@@ -2712,22 +2750,21 @@ function exportExcel() {
     totals.hours,
     totals.overtime,
     totals.deviation,
-    Math.round(totals.pay),
-  ];
-  html += "<tr>";
-  for (const value of totalValues) {
-    html += `<td style="${statsHeader}">${esc(typeof value === "number" ? Math.round(value) : value)}</td>`;
-  }
-  html += "</tr>";
-  html += "</table></td></tr></table></body></html>";
+    totals.pay,
+  ].forEach((value, index) =>
+    sheet.set(
+      statsRow,
+      statsColumn + index,
+      typeof value === "number" ? Math.round(value) : value,
+      statsHead,
+    ),
+  );
 
-  const blob = new Blob(["\ufeff", html], {
-    type: "application/vnd.ms-excel;charset=utf-8",
-  });
+  const blob = sheet.toBlob();
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `grafik_${schedule.year}_${pad2(schedule.month)}.xls`;
+  link.download = `grafik_${schedule.year}_${pad2(schedule.month)}.xlsx`;
   document.body.append(link);
   link.click();
   link.remove();

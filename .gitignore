@@ -12,6 +12,7 @@ node_modules/
 # Локальное состояние приложения
 data/settings.json
 grafik.xlsx
+grafik_*.xlsx
 *.xls
 
 # ОС и редакторы

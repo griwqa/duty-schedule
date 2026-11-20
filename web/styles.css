@@ -740,6 +740,13 @@ body.view-mode .toolbar select {
   opacity: 0.6;
 }
 
+/* Месяц и год остаются рабочими: переключение ничего не правит. */
+body.view-mode #in-month,
+body.view-mode .field--year input {
+  pointer-events: auto;
+  opacity: 1;
+}
+
 body.view-mode .name-cell[data-row],
 body.view-mode .shift-cell {
   cursor: default;
