@@ -2594,6 +2594,49 @@ function onRatesSubmit(event) {
   toast("Тарифы обновлены: доплата в статистике пересчитана.", "success");
 }
 
+function schemeFill(shift, iso, calendar, useHolidays) {
+  const parts = splitShift(shift);
+  if (parts.includes(SHIFT.DAILY)) return "#000000";
+  if (parts.includes(SHIFT.SUBSTITUTE)) return "#2F5597";
+  if (parts.includes(SHIFT.VACATION)) return "#00B0F0";
+  if (calendar.isWeekend(iso) || (useHolidays && calendar.isHoliday(iso))) return "#D9E1F2";
+  return "#E2EFDA";
+}
+
+// Нижняя дублирующая схема: те же дни, но без букв — только цвет.
+// Имя и телефон в одной ячейке, поэтому текст переливается в пустую колонку телефона.
+function appendSchemeBlock(sheet, schedule, topRow, calendar, useHolidays, phoneOf) {
+  const total = daysInMonth(schedule.year, schedule.month);
+  const head = { fill: "#305496", color: "#FFFFFF", bold: true, border: BORDER_THIN };
+
+  sheet.set(topRow, 1, "Схема", { bold: true });
+  for (let day = 1; day <= total; day += 1) sheet.set(topRow, 2 + day, day, head);
+
+  let row = topRow + 1;
+  for (const engineer of schedule.engineers) {
+    const phone = phoneOf(engineer);
+    sheet.set(row, 1, phone ? `${engineer.name} ${phone}` : engineer.name, { align: "left" });
+    for (let day = 1; day <= total; day += 1) {
+      const iso = isoDate(schedule.year, schedule.month, day);
+      const holiday = useHolidays && calendar.isHoliday(iso);
+      sheet.set(row, 2 + day, "", {
+        fill: schemeFill(engineer.shifts[day - 1] || SHIFT.OFF, iso, calendar, useHolidays),
+        border: holiday ? BORDER_HOLIDAY : BORDER_THIN,
+      });
+    }
+    row += 1;
+  }
+
+  sheet.set(
+    row + 1,
+    1,
+    "Чёрный — суточная смена, тёмно-синий — подмена, голубой — выходной или праздник, " +
+      "зелёный — обычный день, ярко-голубой — отпуск.",
+    { align: "left" },
+  );
+  return row + 1;
+}
+
 function exportExcel() {
   const schedule = state.schedule;
   if (!schedule || !schedule.engineers.length) {
@@ -2752,6 +2795,15 @@ function exportExcel() {
       typeof value === "number" ? Math.round(value) : value,
       statsHead,
     ),
+  );
+
+  appendSchemeBlock(
+    sheet,
+    schedule,
+    Math.max(row, statsRow) + 2,
+    calendar,
+    state.settings.useHolidays,
+    phoneOf,
   );
 
   const blob = sheet.toBlob();
