@@ -72,6 +72,7 @@
 
       <div class="legend" aria-label="Обозначения">
         <span class="legend-item"><i class="swatch shift-daily"></i>Суточная (С)</span>
+        <span class="legend-item"><i class="swatch shift-daily-extra"></i>Сутки пятидневника (С)</span>
         <span class="legend-item"><i class="swatch shift-substitute"></i>Подмена (П)</span>
         <span class="legend-item"><i class="swatch shift-office"></i>Офис (о)</span>
         <span class="legend-item"><i class="swatch shift-remote"></i>Удалёнка (у)</span>
@@ -148,9 +149,10 @@
         <span>Телефон</span>
         <input id="eng-phone" type="tel" maxlength="40" placeholder="+7 900 000-00-00" autocomplete="off">
       </label>
-      <label class="field" id="eng-overtime-field">
-        <span>Переработка за месяц, ч</span>
-        <input id="eng-overtime" type="number" min="0" max="400" step="0.5" inputmode="decimal">
+      <label class="field" id="eng-salary-field">
+        <span>Оклад, ₽</span>
+        <input id="eng-salary" type="number" min="0" max="10000000" step="100" inputmode="decimal">
+        <small class="hint">Нужен для доплаты за переработку: оклад / 176 ч × часы переработки × коэффициент. Часы берутся из отметок «Переработка» в днях.</small>
       </label>
       <div class="dialog-actions dialog-actions--secondary" id="eng-secondary-actions" hidden>
         <button class="btn" id="eng-regenerate" type="button" hidden>Сформировать график заново</button>
@@ -285,8 +287,8 @@
 
   <dialog class="dialog dialog--narrow" id="rates-dialog">
     <form id="rates-form">
-      <h2>Тарифы дополнительных суток</h2>
-      <p class="dialog-hint">Ставка за одни сутки (С или П) у пятидневщика или доп. инженера. Смена суточника оплачивается по обычному графику и в доплату не входит.</p>
+      <h2>Тарифы доплат</h2>
+      <p class="dialog-hint">Ставка за одни сутки или подмену у пятидневщика и доп. инженера. Смена суточника оплачивается по обычному графику и в доплату не входит.</p>
       <label class="field">
         <span>Сутки в будни, ₽</span>
         <input id="rate-daily-weekday" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
@@ -295,6 +297,15 @@
         <span>Сутки в выходной или праздник, ₽</span>
         <input id="rate-daily-holiday" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
       </label>
+      <label class="field">
+        <span>Подмена, ₽</span>
+        <input id="rate-substitute" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>Коэффициент переработки</span>
+        <input id="rate-overtime-coefficient" type="number" min="0" max="10" step="0.1" inputmode="decimal">
+      </label>
+      <p class="dialog-hint">Доплата за переработку: оклад из карточки сотрудника / 176 ч × часы, проставленные по дням × коэффициент.</p>
       <div class="dialog-actions">
         <span class="spacer"></span>
         <button class="btn" id="rates-cancel" type="button">Отмена</button>

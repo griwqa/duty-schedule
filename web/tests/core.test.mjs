@@ -23,6 +23,16 @@ const reference = JSON.parse(
 
 const names = ["Инженер A", "Инженер B", "Инженер C", "Инженер D"];
 
+// Справочник из Python-версии (make_reference.py) отмечает дежурство в праздник
+// кодом «П» — снятой праздничной сменой. Суточник в праздник работает обычные
+// сутки, поэтому в ожиданиях он превращается обратно в «С»: часы от этого не
+// меняются. Исчезнет преобразование вместе с переносом правил в десктоп.
+const dutyRows = (rows) =>
+  rows.map((row) => ({
+    ...row,
+    shifts: row.shifts.map((code) => (code === SHIFT.SUBSTITUTE ? SHIFT.DAILY : code)),
+  }));
+
 function calendar(year) {
   return new ProductionCalendar(reference.calendars[String(year)]);
 }
@@ -70,7 +80,7 @@ assertEngineers(
     useHolidays: true,
     shiftHours: 24,
   }),
-  reference.rotation_2026_11,
+  dutyRows(reference.rotation_2026_11),
   "rotation 2026-11",
 );
 
@@ -84,7 +94,7 @@ assertEngineers(
     useHolidays: false,
     shiftHours: 24,
   }),
-  reference.rotation_holidays_off,
+  dutyRows(reference.rotation_holidays_off),
   "rotation without holidays",
 );
 
@@ -98,7 +108,7 @@ assertEngineers(
     useHolidays: true,
     shiftHours: 24,
   }),
-  reference.rotation_2027_01,
+  dutyRows(reference.rotation_2027_01),
   "rotation 2027-01",
 );
 
@@ -109,7 +119,7 @@ assertEngineers(
     engineers: names,
     calendars: calendars(2026, 2027),
   }),
-  reference.night_2026_11,
+  dutyRows(reference.night_2026_11),
   "night 2026-11",
 );
 
@@ -120,7 +130,7 @@ assertEngineers(
     engineers: names,
     calendars: calendars(2026, 2027),
   }),
-  reference.night_2027_01,
+  dutyRows(reference.night_2027_01),
   "night 2027-01",
 );
 
@@ -131,7 +141,7 @@ assertEngineers(
     engineers: names.slice(0, 3),
     calendars: calendars(2026),
   }),
-  reference.night_2026_03_three,
+  dutyRows(reference.night_2026_03_three),
   "night 2026-03 three engineers",
 );
 
@@ -225,7 +235,7 @@ assert.equal(built.engineers[5].role, ROLE.EXTRA);
 assert.equal(built.normHours, reference.norm_2026_11);
 assert.deepEqual(
   built.engineers.slice(0, 4).map((engineer) => engineer.shifts),
-  reference.rotation_2026_11.map((engineer) => engineer.shifts),
+  dutyRows(reference.rotation_2026_11).map((engineer) => engineer.shifts),
   "buildSchedule duty shifts match rotation",
 );
 
@@ -239,7 +249,7 @@ const builtNight = buildSchedule({
 });
 assert.deepEqual(
   builtNight.engineers.slice(0, 4).map((engineer) => engineer.shifts),
-  reference.night_2026_11.map((engineer) => engineer.shifts),
+  dutyRows(reference.night_2026_11).map((engineer) => engineer.shifts),
   "buildSchedule night shifts match linked",
 );
 

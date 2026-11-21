@@ -17,6 +17,8 @@ import {
   mergeFiveDayShift,
   normalizeFiveDayShift,
   normalizeStaff,
+  OVERTIME_BASE_HOURS,
+  overtimePay,
   recalculateEngineer,
   shiftHas,
   splitShift,
@@ -78,6 +80,16 @@ const SHIFT_FILL = {
   [SHIFT.TRIP]: ["#FCE4D6", "#111827"],
   [SHIFT.VACATION]: ["#00B0F0", "#FFFFFF"],
 };
+
+// Суточные пятидневщика и доп. инженера — жёлтые: они дополняют дежурство
+// суточника (оно остаётся чёрным), а не заменяют его.
+const EXTRA_DAILY_FILL = ["#FFC000", "#111827"];
+
+function shiftFillFor(role, shift) {
+  const parts = splitShift(shift);
+  if (role !== ROLE.DUTY && parts.includes(SHIFT.DAILY)) return EXTRA_DAILY_FILL;
+  return SHIFT_FILL[shift] || SHIFT_FILL[parts[0]] || null;
+}
 
 const NAME_FILL = {
   [ROLE.DUTY]: "#D9E1F2",
@@ -265,7 +277,12 @@ async function matchesViewPassword(password) {
   return hash === stored.hash;
 }
 
-const DEFAULT_SHIFT_RATES = { dailyWeekday: 1500, dailyHoliday: 2500 };
+const DEFAULT_SHIFT_RATES = {
+  dailyWeekday: 1500,
+  dailyHoliday: 2500,
+  substitute: 0,
+  overtimeCoefficient: 1.5,
+};
 
 function normalizeShiftRates(raw) {
   const source = raw && typeof raw === "object" ? raw : {};
@@ -281,6 +298,18 @@ function normalizeShiftRates(raw) {
       0,
       1_000_000,
       DEFAULT_SHIFT_RATES.dailyHoliday,
+    ),
+    substitute: clampNumber(
+      source.substitute,
+      0,
+      1_000_000,
+      DEFAULT_SHIFT_RATES.substitute,
+    ),
+    overtimeCoefficient: clampNumber(
+      source.overtimeCoefficient,
+      0,
+      10,
+      DEFAULT_SHIFT_RATES.overtimeCoefficient,
     ),
   };
 }
@@ -408,8 +437,8 @@ function cacheElements() {
     "eng-role",
     "eng-position",
     "eng-phone",
-    "eng-overtime",
-    "eng-overtime-field",
+    "eng-salary",
+    "eng-salary-field",
     "eng-secondary-actions",
     "eng-regenerate",
     "eng-vacation",
@@ -436,6 +465,8 @@ function cacheElements() {
     "rates-form",
     "rate-daily-weekday",
     "rate-daily-holiday",
+    "rate-substitute",
+    "rate-overtime-coefficient",
     "rates-cancel",
     "redistribute-dialog",
     "redistribute-form",
@@ -981,6 +1012,7 @@ function serializeSchedule(schedule = state.schedule, manual = state.dirty) {
       name: engineer.name,
       role: engineer.role,
       position: engineer.position,
+      salary: Number(engineer.salary) || 0,
       shifts: [...engineer.shifts],
       overtimeHours: Number(engineer.overtimeHours) || 0,
       overtimeByDay: Array.isArray(engineer.overtimeByDay)
@@ -1184,6 +1216,7 @@ function runtimeSchedule(saved, calendar) {
       member.role,
       member.position,
       member.phone,
+      member.salary,
     );
     engineer.shifts = normalizeShifts(item?.shifts, total, member.role);
     engineer.overtimeHours = Math.max(0, Number(item?.overtimeHours) || 0);
@@ -1468,6 +1501,7 @@ function syncSchedulesWithStaff() {
           name: member.name,
           role: member.role,
           position: member.position || "",
+          salary: Math.max(0, Number(member.salary) || 0),
           shifts: normalizeShifts(item?.shifts, total, member.role),
           overtimeHours: Math.max(0, Number(item?.overtimeHours) || 0),
           overtimeByDay: Array.from({ length: total }, (_, index) =>
@@ -1512,10 +1546,10 @@ function renderAll() {
 
 function shiftTooltip(role) {
   if (role === ROLE.EXTRA) {
-    return "Доп. инженер: правый клик — С (суточная), П (подмена), Отп (отпуск), переработка или выходной. Перетаскивание обменивает значения между датами.";
+    return "Доп. инженер: правый клик — С (суточная, жёлтым), П (подмена), Отп (отпуск), переработка или выходной. Перетаскивание обменивает значения между датами.";
   }
   if (role === ROLE.FIVE_DAY) {
-    return "5-дневный график: база — о (офис), у (удалёнка), в (выезд); дополнительные дежурства — С (сутки) и П (подмена); Отп — отпуск. Если в дне уже есть база, дежурство добавляется второй частью: о/С; повторный выбор части в совмещённом дне убирает её. Правый клик → «Переработка» — часы сверх смены. Перетаскивание обменивает значения между датами.";
+    return "5-дневный график: база — о (офис), у (удалёнка), в (выезд); дополнительные дежурства — С (сутки, жёлтым) и П (подмена); Отп — отпуск. Если в дне уже есть база, дежурство добавляется второй частью: о/С; повторный выбор части в совмещённом дне убирает её. Правый клик → «Переработка» — часы сверх смены; оплата считается от оклада в карточке. Перетаскивание обменивает значения между датами.";
   }
   return "Суточник: правый клик — С, о (офис), у (удалёнка), в (выезд), Отп (отпуск), переработка или выходной. Праздники — обычные сутки, в ячейке обведены красной рамкой. Перетаскивание обменивает значения между датами.";
 }
@@ -1525,14 +1559,16 @@ const OVERTIME_TINT =
 const OVERTIME_FILL =
   "linear-gradient(135deg, rgba(191, 121, 0, 0.28) 0%, rgba(191, 121, 0, 0.12) 58%, rgba(191, 121, 0, 0.05) 100%)";
 
-function shiftCellContent(shift, { weekend = false, overtime = 0 } = {}) {
+function shiftCellContent(shift, { weekend = false, overtime = 0, role = ROLE.DUTY } = {}) {
   const parts = splitShift(shift);
+  const fillFor = (code) =>
+    code === SHIFT.DAILY && role !== ROLE.DUTY ? EXTRA_DAILY_FILL : SHIFT_FILL[code];
   let html = esc(shift);
-  let solid = shift ? (SHIFT_FILL[shift] || SHIFT_FILL[parts[0]])?.[0] || "#ffffff" : weekend ? "#fff2cc" : "#ffffff";
+  let solid = shift ? (fillFor(shift) || fillFor(parts[0]))?.[0] || "#ffffff" : weekend ? "#fff2cc" : "#ffffff";
   let image = "";
   if (parts.length > 1) {
-    const baseFill = SHIFT_FILL[parts[0]];
-    const dutyFill = SHIFT_FILL[parts[1]];
+    const baseFill = fillFor(parts[0]);
+    const dutyFill = fillFor(parts[1]);
     const baseColor = baseFill ? baseFill[0] : "#ffffff";
     const dutyColor = dutyFill ? dutyFill[0] : "#ffffff";
     html =
@@ -1606,16 +1642,22 @@ function renderSchedule(issueDays) {
       const holiday = state.settings.useHolidays && calendar.isHoliday(iso);
       const overtime = Number(engineer.overtimeByDay?.[day - 1]) || 0;
       const weekend = !shift && calendar.isWeekend(iso);
+      const extraDaily = engineer.role !== ROLE.DUTY && parts.includes(SHIFT.DAILY);
       const classes = [
         "shift-cell",
         SHIFT_CLASS[shift] || "",
+        extraDaily ? "shift-daily-extra" : "",
         combo ? "shift-combo" : "",
         weekend ? "is-weekend" : "",
         holiday ? "is-holiday" : "",
       ]
         .filter(Boolean)
         .join(" ");
-      const content = shiftCellContent(shift, { weekend, overtime });
+      const content = shiftCellContent(shift, {
+        weekend,
+        overtime,
+        role: engineer.role,
+      });
       const title = [
         holiday ? "Праздничный день" : "",
         overtime > 0 ? `Переработка +${formatNumber(overtime)} ч` : "",
@@ -1653,17 +1695,22 @@ function renderSchedule(issueDays) {
 
 function engineerShiftPay(engineer, schedule) {
   const rates = normalizeShiftRates(state.settings.shiftRates);
-  const { weekday, holiday } = extraDutyTotals(
+  const totals = extraDutyTotals(
     engineer,
     schedule.calendar,
     schedule.year,
     schedule.month,
     state.settings.useHolidays,
   );
+  const overtimeMoney = overtimePay(engineer, rates.overtimeCoefficient);
   return {
-    weekday,
-    holiday,
-    pay: weekday * rates.dailyWeekday + holiday * rates.dailyHoliday,
+    ...totals,
+    overtimeMoney,
+    pay:
+      totals.weekday * rates.dailyWeekday +
+      totals.holiday * rates.dailyHoliday +
+      totals.substitute * rates.substitute +
+      overtimeMoney,
   };
 }
 
@@ -1684,6 +1731,8 @@ function renderStats() {
     substitute: 0,
     weekday: 0,
     holiday: 0,
+    extraSubstitute: 0,
+    overtimeMoney: 0,
     vacation: 0,
     five: 0,
   };
@@ -1700,6 +1749,8 @@ function renderStats() {
     totals.substitute += engineer.substituteCount;
     totals.weekday += duty.weekday;
     totals.holiday += duty.holiday;
+    totals.extraSubstitute += duty.substitute;
+    totals.overtimeMoney += duty.overtimeMoney;
     totals.vacation += engineer.vacationDays;
     totals.five += five;
     total += engineer.totalHours;
@@ -1741,14 +1792,16 @@ function renderStats() {
     `Отклонение от нормы: <b>${formatSigned(deviation)} ч</b> &nbsp;·&nbsp; ` +
     `Доплата по тарифам: <b>${formatMoney(totalPay)} ₽</b> ` +
     `(сутки: ${formatMoney(rates.dailyWeekday)} ₽ в будни, ` +
-    `${formatMoney(rates.dailyHoliday)} ₽ в выходной и праздник)`;
+    `${formatMoney(rates.dailyHoliday)} ₽ в выходной и праздник; ` +
+    `подмена: ${formatMoney(rates.substitute)} ₽; ` +
+    `переработка: оклад / ${OVERTIME_BASE_HOURS} ч × коэффициент ${String(rates.overtimeCoefficient).replace(".", ",")})`;
 }
 
 function renderValidation(validation) {
   if (!validation.issues.length) {
     els.validation.className = "validation ok";
     els.validation.textContent =
-      "Замечаний нет: нет двух дежурных в один день, дублей дежурств и смен подряд.";
+      "Замечаний нет: нет двух дежурных в один день, дублей подмен и смен подряд.";
     return;
   }
   els.validation.className = "validation has-issues";
@@ -1766,7 +1819,6 @@ function renderConditions() {
   const five = countRole(state.staff, ROLE.FIVE_DAY);
   const extra = countRole(state.staff, ROLE.EXTRA);
   const dailyHours = formatNumber(settings.dailyHours);
-  const nightHours = formatNumber(settings.nightHours);
 
   let text = "";
   if (displayMode === MODE_ROTATION) {
@@ -1776,21 +1828,21 @@ function renderConditions() {
       "Праздники суточники работают как обычные сутки. Перетащите смену на другую дату, чтобы обменять; правый клик — тип смены.";
   } else {
     text =
-      `Условия работы: Н — ночная смена 19:00–10:00 (${nightHours} ч) · ` +
-      `С — суточная смена 10:00–10:00 (${dailyHours} ч) · ` +
-      "перерыв на обед 1 ч · ночной перерыв — от 30 мин до 2 ч (ст. 108 ТК РФ).";
+      `Условия работы: С — суточная смена 10:00–10:00 (${dailyHours} ч) · ` +
+      "перерыв на обед 1 ч (ст. 108 ТК РФ).";
   }
   if (five) {
-    text += ` 5-дневных сотрудников: ${five} — офис, удалёнка, выезд, дополнительные сутки (С) или подмена (П); совмещённый день показывается как о/С.`;
+    text += ` 5-дневных сотрудников: ${five} — офис, удалёнка, выезд, дополнительные сутки (С, жёлтым) или подмена (П); совмещённый день показывается как о/С.`;
   }
   if (extra) {
-    text += ` Доп. инженеров: ${extra} — С (сутки) или П (подмена), ставятся вручную.`;
+    text += ` Доп. инженеров: ${extra} — С (сутки, жёлтым) или П (подмена), ставятся вручную.`;
   }
   text +=
     " Отпуск — Отп." +
     (state.settings.useHolidays ? " Праздничные дни обведены красной рамкой." : "") +
-    " Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника." +
-    " Тариф за дополнительные сутки задаётся кнопкой «Тарифы»: будни и выходные с праздниками оплачиваются по разным ставкам и дают колонку «Доплата».";
+    " Переработка: правый клик по ячейке → «Переработка» (часы сверх смены)." +
+    " Тарифы за дополнительные сутки, подмену и переработку задаются кнопкой «Тарифы»: будни и выходные с праздниками оплачиваются по разным ставкам. " +
+    `Доплата за переработку = оклад из карточки сотрудника / ${OVERTIME_BASE_HOURS} ч × часы переработки × коэффициент; она учитывается в колонке «Доплата».`;
   els.conditions.textContent = text;
 }
 
@@ -2026,7 +2078,7 @@ function updateEngineerDialogActions() {
   const member = isNew ? null : state.schedule?.rows?.[dialogIndex];
   const role = els.engRole.value;
   const roleChanged = Boolean(member && role !== member.role);
-  els.engOvertimeField.hidden = false;
+  els.engSalaryField.hidden = false;
   els.engRegenerate.hidden = isNew || (role === ROLE.DUTY && !roleChanged);
   els.engVacation.hidden = isNew;
   els.engSecondaryActions.hidden =
@@ -2303,7 +2355,7 @@ function openEngineerModal(index = null) {
   els.engRole.value = ROLE.DUTY;
   els.engPosition.value = "";
   els.engPhone.value = "";
-  els.engOvertime.value = "0";
+  els.engSalary.value = "0";
   els.vacationPanel.hidden = true;
 
   if (dialogMode === "new") {
@@ -2328,7 +2380,7 @@ function openEngineerModal(index = null) {
     els.engRole.value = member.role;
     els.engPosition.value = member.position || "";
     els.engPhone.value = member.phone || "";
-    els.engOvertime.value = formatNumber(Number(engineer?.overtimeHours) || 0);
+    els.engSalary.value = formatNumber(Number(engineer?.salary ?? member.salary) || 0);
     autoName = "";
   }
 
@@ -2407,9 +2459,9 @@ async function commitEngineerForm({ regenerate = false } = {}) {
   const role = els.engRole.value;
   const position = els.engPosition.value.trim();
   const phone = els.engPhone.value.trim();
-  const overtimeHours = Math.max(
+  const salary = Math.max(
     0,
-    clampNumber(els.engOvertime.value, 0, 400, 0),
+    clampNumber(els.engSalary.value, 0, 10_000_000, 0),
   );
   const dutyNow = countRole(state.staff, ROLE.DUTY);
   const extraNow = countRole(state.staff, ROLE.EXTRA);
@@ -2423,26 +2475,11 @@ async function commitEngineerForm({ regenerate = false } = {}) {
       toast("Слишком много доп. инженеров.", "error");
       return;
     }
-    state.staff.push({ name, role, position, phone });
+    state.staff.push({ name, role, position, phone, salary });
     els.engineerDialog.close();
     await applyStaffChanges(`Добавлен сотрудник: ${name}`, {
       fillFiveDay: role === ROLE.FIVE_DAY ? [name] : [],
     });
-    const added = state.schedule?.engineers?.find((item) => item.name === name);
-    if (added && overtimeHours > 0) {
-      added.overtimeHours = overtimeHours;
-      recalculateEngineer(
-        added,
-        state.settings.nightHours,
-        state.settings.dailyHours,
-        state.settings.workdayHours,
-      );
-      state.dirty = true;
-      archiveActiveSchedule();
-      markNeonDirty();
-      renderAll();
-      writeStorage();
-    }
     return;
   }
 
@@ -2472,12 +2509,13 @@ async function commitEngineerForm({ regenerate = false } = {}) {
   member.role = role;
   member.position = position;
   member.phone = phone;
+  member.salary = salary;
   if (scheduleEngineer) {
     scheduleEngineer.name = name;
     scheduleEngineer.role = role;
     scheduleEngineer.position = position;
     scheduleEngineer.phone = phone;
-    scheduleEngineer.overtimeHours = overtimeHours;
+    scheduleEngineer.salary = salary;
   }
   els.engineerDialog.close();
   if (oldName !== name) renameMemberInArchives(oldName, name, position);
@@ -2574,6 +2612,8 @@ function openRatesDialog() {
   const rates = normalizeShiftRates(state.settings.shiftRates);
   els.rateDailyWeekday.value = formatRate(rates.dailyWeekday);
   els.rateDailyHoliday.value = formatRate(rates.dailyHoliday);
+  els.rateSubstitute.value = formatRate(rates.substitute);
+  els.rateOvertimeCoefficient.value = formatNumber(rates.overtimeCoefficient);
   els.ratesDialog.showModal();
 }
 
@@ -2586,6 +2626,8 @@ function onRatesSubmit(event) {
   state.settings.shiftRates = normalizeShiftRates({
     dailyWeekday: els.rateDailyWeekday.value,
     dailyHoliday: els.rateDailyHoliday.value,
+    substitute: els.rateSubstitute.value,
+    overtimeCoefficient: els.rateOvertimeCoefficient.value,
   });
   els.ratesDialog.close();
   renderAll();
@@ -2630,8 +2672,9 @@ function appendSchemeBlock(sheet, schedule, topRow, calendar, useHolidays, phone
   sheet.set(
     row + 1,
     1,
-    "Чёрный — суточная смена, тёмно-синий — подмена, голубой — выходной или праздник, " +
-      "зелёный — обычный день, ярко-голубой — отпуск.",
+    "Чёрный — суточная смена (и у суточника, и дополнительные сутки пятидневщика), " +
+      "тёмно-синий — подмена, голубой — выходной или праздник, зелёный — обычный день, " +
+      "ярко-голубой — отпуск.",
     { align: "left" },
   );
   return row + 1;
@@ -2677,7 +2720,7 @@ function exportExcel() {
       const iso = isoDate(schedule.year, schedule.month, day);
       const shift = engineer.shifts[day - 1] || SHIFT.OFF;
       const overtime = Number(engineer.overtimeByDay?.[day - 1]) || 0;
-      const fill = SHIFT_FILL[shift] || SHIFT_FILL[splitShift(shift)[0]];
+      const fill = shiftFillFor(engineer.role, shift);
       const label = overtime > 0 ? `${shift} +${formatNumber(overtime)}`.trim() : shift;
       sheet.set(row, 2 + day, label, {
         fill: fill ? fill[0] : calendar.isWeekend(iso) ? "#FFF2CC" : "#FFFFFF",

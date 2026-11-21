@@ -450,6 +450,13 @@ body.busy {
   color: #fff;
 }
 
+/* Суточные пятидневщика и доп. инженера дополняют дежурство суточника,
+   поэтому тот же знак С, но другой цвет. */
+.shift-daily-extra {
+  background: #ffc000;
+  color: #111827;
+}
+
 .shift-substitute {
   background: var(--substitute);
   color: #fff;

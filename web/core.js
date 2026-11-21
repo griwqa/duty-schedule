@@ -36,7 +36,10 @@ export const DEFAULT_NAMES = ["Инженер A", "Инженер B", "Инже�
 
 const DUTY_SHIFTS = new Set([SHIFT.DAILY]);
 
-const DUPLICATE_SHIFTS = [SHIFT.DAILY, SHIFT.SUBSTITUTE];
+// Замечание о дубле касается только подмен: суточная смена пятидневщика или
+// доп. инженера дополняет дежурство суточника, а два суточника в один день
+// ловятся проверкой «на смене N чел.» ниже.
+const DUPLICATE_SHIFTS = [SHIFT.SUBSTITUTE];
 
 export const FIVE_DAY_BASE_SHIFTS = new Set([
   SHIFT.OFFICE,
@@ -185,8 +188,10 @@ export function cleanMember(raw) {
   let name = String(raw?.name ?? "").trim();
   const position = String(raw?.position ?? "").trim();
   const phone = String(raw?.phone ?? "").trim();
+  const salaryValue = Number(raw?.salary);
+  const salary = Number.isFinite(salaryValue) && salaryValue > 0 ? salaryValue : 0;
   if (!name) name = `${ROLE_PREFIXES[role]} A`;
-  return { name, role, position, phone };
+  return { name, role, position, phone, salary };
 }
 
 export function normalizeStaff(raw) {
@@ -243,12 +248,19 @@ export function ensureRoleCount(staff, role, count) {
   return result;
 }
 
-export function createEngineer(name, role = ROLE.DUTY, position = "", phone = "") {
+export function createEngineer(
+  name,
+  role = ROLE.DUTY,
+  position = "",
+  phone = "",
+  salary = 0,
+) {
   return {
     name,
     role,
     position,
     phone,
+    salary: Math.max(0, Number(salary) || 0),
     shifts: [],
     overtimeHours: 0,
     overtimeByDay: [],
@@ -315,8 +327,9 @@ export function recalculateEngineer(
       }
     }
   }
-  let overtimeTotal = Number(engineer.overtimeHours);
-  if (!Number.isFinite(overtimeTotal) || overtimeTotal < 0) overtimeTotal = 0;
+  // Часы переработки — только проставленные по дням; поле «Переработка за месяц»
+  // из карточки убрано, сохранённые там значения больше не участвуют в расчёте.
+  let overtimeTotal = 0;
   if (Array.isArray(engineer.overtimeByDay)) {
     for (const value of engineer.overtimeByDay) {
       const hours = Number(value);
@@ -665,6 +678,7 @@ export function makeFiveDayEngineers(
       ROLE.FIVE_DAY,
       member.position,
       member.phone,
+      member.salary,
     );
     engineer.shifts = [];
     for (let day = 1; day <= total; day += 1) {
@@ -716,10 +730,6 @@ export function validateSchedule(engineers) {
     for (const code of DUPLICATE_SHIFTS) {
       const list = holders.get(code);
       if (!list || list.length < 2) continue;
-      const coveredByDutyCheck =
-        DUTY_SHIFTS.has(code) &&
-        list.every((engineer) => engineer.role === ROLE.DUTY);
-      if (coveredByDutyCheck) continue;
       issueDays.add(i + 1);
       issues.push(
         `день ${i + 1}: ${
@@ -821,6 +831,7 @@ export function buildSchedule({
   main.forEach((engineer, index) => {
     engineer.position = dutyMembers[index]?.position || "";
     engineer.phone = dutyMembers[index]?.phone || "";
+    engineer.salary = dutyMembers[index]?.salary || 0;
   });
 
   const five = makeFiveDayEngineers(
@@ -838,6 +849,7 @@ export function buildSchedule({
   extras.forEach((engineer, index) => {
     engineer.position = extraMembers[index]?.position || "";
     engineer.phone = extraMembers[index]?.phone || "";
+    engineer.salary = extraMembers[index]?.salary || 0;
   });
 
   const engineers = [...main, ...five, ...extras];
@@ -856,17 +868,32 @@ export function engineerStats(engineers) {
 // Суточник отрабатывает сутки по своему графику — это обычная смена, не подработка.
 // Оплачиваются только сутки и подмена в рядах пятидневщиков и доп. инженеров.
 export function extraDutyTotals(engineer, calendar, year, month, useHolidays = true) {
-  const totals = { weekday: 0, holiday: 0 };
+  const totals = { weekday: 0, holiday: 0, substitute: 0 };
   if (!engineer || !calendar || engineer.role === ROLE.DUTY) return totals;
   for (let index = 0; index < engineer.shifts.length; index += 1) {
     const parts = splitShift(engineer.shifts[index]);
     if (!parts.some((part) => FIVE_DAY_DUTY_SHIFTS.has(part))) continue;
+    if (!parts.includes(SHIFT.DAILY)) {
+      totals.substitute += 1;
+      continue;
+    }
     const iso = isoDate(year, month, index + 1);
     const weekendOrHoliday =
       calendar.isWeekend(iso) || (useHolidays && calendar.isHoliday(iso));
     totals[weekendOrHoliday ? "holiday" : "weekday"] += 1;
   }
   return totals;
+}
+
+// Переработка: оклад / 176 ч нормы × часы, проставленные по дням × коэффициент.
+export const OVERTIME_BASE_HOURS = 176;
+
+export function overtimePay(engineer, coefficient = 1.5) {
+  const salary = Number(engineer?.salary) || 0;
+  const hours = Number(engineer?.overtimeTotal) || 0;
+  const rate = Number(coefficient);
+  if (!salary || !hours || !Number.isFinite(rate)) return 0;
+  return (salary / OVERTIME_BASE_HOURS) * hours * rate;
 }
 
 export function shiftHoursValue(shift, nightHours = 15, dailyHours = 24, workdayHours = 8) {

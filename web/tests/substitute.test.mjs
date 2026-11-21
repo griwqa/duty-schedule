@@ -5,10 +5,14 @@ import {
   ProductionCalendar,
   ROLE,
   SHIFT,
+  buildSchedule,
+  calendarFromMonthWeekends,
+  cleanMember,
   createEngineer,
   extraDutyTotals,
   mergeFiveDayShift,
   normalizeFiveDayShift,
+  overtimePay,
   recalculateEngineer,
   shiftHoursValue,
   validateSchedule,
@@ -45,22 +49,34 @@ assert.equal(shiftHoursValue(`${SHIFT.OFFICE}/${SHIFT.SUBSTITUTE}`, 15, 24, 8), 
 
 assert.deepEqual(
   extraDutyTotals(fiveDay, nov, 2026, 11, true),
-  { weekday: 1, holiday: 2 },
-  "праздник считается по ставке выходного",
+  { weekday: 1, holiday: 0, substitute: 2 },
+  "сутки считаются по типу дня, подмена — отдельной ставкой",
 );
 assert.deepEqual(
   extraDutyTotals(fiveDay, nov, 2026, 11, false),
-  { weekday: 2, holiday: 1 },
-  "без учёта праздников будний праздник оплачивается как будни",
+  { weekday: 1, holiday: 0, substitute: 2 },
+  "на подмену флаг праздников не влияет",
 );
 
 const dutySame = createEngineer("Инженер A", ROLE.DUTY);
 dutySame.shifts = fiveDay.shifts.slice();
 assert.deepEqual(
   extraDutyTotals(dutySame, nov, 2026, 11, true),
-  { weekday: 0, holiday: 0 },
+  { weekday: 0, holiday: 0, substitute: 0 },
   "сутки суточника — обычная смена, не подработка",
 );
+
+// Переработка: оклад / 176 ч × часы по дням × коэффициент.
+const paid = createEngineer("Сотрудник B", ROLE.FIVE_DAY, "", "", 176_000);
+paid.shifts = new Array(30).fill(SHIFT.OFF);
+paid.overtimeByDay = new Array(30).fill(0);
+paid.overtimeByDay[0] = 4;
+paid.overtimeByDay[1] = 2;
+recalculateEngineer(paid, 15, 24, 8);
+assert.equal(paid.overtimeTotal, 6, "часы берутся только из отметок по дням");
+assert.equal(overtimePay(paid, 1.5), 9_000, "176000 / 176 × 6 × 1,5");
+assert.equal(overtimePay(paid, 1), 6_000, "коэффициент влияет на сумму");
+assert.equal(overtimePay(createEngineer("Без оклада", ROLE.FIVE_DAY), 1.5), 0);
 
 assert.equal(
   mergeFiveDayShift(SHIFT.OFFICE, SHIFT.SUBSTITUTE),
@@ -86,5 +102,38 @@ assert.match(
   /день 1: подмена у 2 чел/,
   "две подмены в один день — замечание",
 );
+
+// Суточная пятидневщика дополняет дежурство суточника, а не спорит с ним.
+const helper = createEngineer("Сотрудник B", ROLE.FIVE_DAY);
+helper.shifts = [SHIFT.DAILY, SHIFT.OFF, SHIFT.OFF, SHIFT.OFF, SHIFT.OFF];
+assert.deepEqual(
+  validateSchedule([duty, helper]).issues,
+  [],
+  "С суточника и пятидневщика в один день — не замечание",
+);
+const secondDuty = createEngineer("Инженер B", ROLE.DUTY);
+secondDuty.shifts = [SHIFT.DAILY, SHIFT.OFF, SHIFT.OFF, SHIFT.OFF, SHIFT.OFF];
+assert.match(
+  validateSchedule([duty, secondDuty, helper]).issues.join("; "),
+  /день 1: на смене 2 чел/,
+  "два суточника в один день по-прежнему замечание",
+);
+
+// Оклад — staff-свойство: доезжает до карточки через buildSchedule.
+const staff = [
+  cleanMember({ name: "Инженер A", salary: "150000" }),
+  cleanMember({ name: "Сотрудник A", role: ROLE.FIVE_DAY, salary: 176000 }),
+];
+assert.equal(staff[0].salary, 150000, "строковый оклад становится числом");
+assert.equal(cleanMember({ name: "Инженер B", salary: -5 }).salary, 0, "отрицательный оклад не хранится");
+const built = buildSchedule({
+  staff,
+  year: 2026,
+  month: 11,
+  calendars: reference.calendars,
+  anchorIso: "2026-11-01",
+});
+const builtFive = built.engineers.find((engineer) => engineer.role === ROLE.FIVE_DAY);
+assert.equal(builtFive.salary, 176000, "оклад пятидневника попадает в график");
 
 console.log("substitute.test: ok");
