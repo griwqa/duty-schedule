@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/core.test.mjs"
+    "test": "node tests/core.test.mjs && node tests/substitute.test.mjs && node tests/xlsx.test.mjs"
   }
 }

@@ -10,6 +10,7 @@ import {
   daysInMonth,
   defaultName,
   engineerStats,
+  extraDutyTotals,
   isoDate,
   isoWeekday,
   joinShift,
@@ -55,6 +56,7 @@ const MODE_NIGHT = "night_weekend";
 const SHIFT_CLASS = {
   [SHIFT.NIGHT]: "shift-night",
   [SHIFT.DAILY]: "shift-daily",
+  [SHIFT.SUBSTITUTE]: "shift-substitute",
   [SHIFT.MORNING]: "shift-morning",
   [SHIFT.DAY]: "shift-day",
   [SHIFT.EVENING]: "shift-evening",
@@ -67,6 +69,7 @@ const SHIFT_CLASS = {
 const SHIFT_FILL = {
   [SHIFT.NIGHT]: ["#4472C4", "#FFFFFF"],
   [SHIFT.DAILY]: ["#ED7D31", "#FFFFFF"],
+  [SHIFT.SUBSTITUTE]: ["#2F5597", "#FFFFFF"],
   [SHIFT.MORNING]: ["#70AD47", "#FFFFFF"],
   [SHIFT.DAY]: ["#FFC000", "#111827"],
   [SHIFT.EVENING]: ["#7030A0", "#FFFFFF"],
@@ -85,8 +88,6 @@ const NAME_FILL = {
 const CELL_OPTIONS = {
   [ROLE.DUTY]: [
     [SHIFT.DAILY, "Суточная (С)"],
-    [SHIFT.NIGHT, "Ночная (Н)"],
-    [SHIFT.DAY, "День (Д)"],
     [SHIFT.OFFICE, "Офис (о)"],
     [SHIFT.REMOTE, "Удалёнка (у)"],
     [SHIFT.TRIP, "Выезд (в)"],
@@ -94,9 +95,8 @@ const CELL_OPTIONS = {
     [SHIFT.OFF, "Выходной (—)"],
   ],
   [ROLE.EXTRA]: [
-    [SHIFT.MORNING, "Утро (У)"],
-    [SHIFT.DAY, "День (Д)"],
-    [SHIFT.EVENING, "Вечер (В)"],
+    [SHIFT.DAILY, "Суточная (С)"],
+    [SHIFT.SUBSTITUTE, "Подмена (П)"],
     [SHIFT.VACATION, "Отпуск (Отп)"],
     [SHIFT.OFF, "Выходной (—)"],
   ],
@@ -104,10 +104,8 @@ const CELL_OPTIONS = {
     [SHIFT.OFFICE, "Офис (о)"],
     [SHIFT.REMOTE, "Удалёнка (у)"],
     [SHIFT.TRIP, "Выезд (в)"],
-    [SHIFT.MORNING, "Утро (У)"],
-    [SHIFT.DAY, "День (Д)"],
-    [SHIFT.EVENING, "Вечер (В)"],
-    [SHIFT.NIGHT, "Ночная (Н)"],
+    [SHIFT.DAILY, "Суточная (С)"],
+    [SHIFT.SUBSTITUTE, "Подмена (П)"],
     [SHIFT.VACATION, "Отпуск (Отп)"],
     [SHIFT.OFF, "Выходной (—)"],
   ],
@@ -115,14 +113,14 @@ const CELL_OPTIONS = {
 
 const ROLE_ORDER = [ROLE.DUTY, ROLE.FIVE_DAY, ROLE.EXTRA];
 
-const DUTY_SHIFT_SET = new Set([SHIFT.NIGHT, SHIFT.DAILY]);
+const DUTY_SHIFT_SET = new Set([SHIFT.DAILY]);
 
+// Ночью в наборах остаётся только для чтения старых месяцев: выбрать её уже нельзя.
 const ROLE_SHIFT_SETS = {
   [ROLE.DUTY]: new Set([
     SHIFT.OFF,
     SHIFT.DAILY,
     SHIFT.NIGHT,
-    SHIFT.DAY,
     SHIFT.OFFICE,
     SHIFT.REMOTE,
     SHIFT.TRIP,
@@ -133,17 +131,14 @@ const ROLE_SHIFT_SETS = {
     SHIFT.OFFICE,
     SHIFT.REMOTE,
     SHIFT.TRIP,
-    SHIFT.MORNING,
-    SHIFT.DAY,
-    SHIFT.EVENING,
-    SHIFT.NIGHT,
+    SHIFT.DAILY,
+    SHIFT.SUBSTITUTE,
     SHIFT.VACATION,
   ]),
   [ROLE.EXTRA]: new Set([
     SHIFT.OFF,
-    SHIFT.MORNING,
-    SHIFT.DAY,
-    SHIFT.EVENING,
+    SHIFT.DAILY,
+    SHIFT.SUBSTITUTE,
     SHIFT.VACATION,
   ]),
 };
@@ -270,15 +265,23 @@ async function matchesViewPassword(password) {
   return hash === stored.hash;
 }
 
-const DEFAULT_SHIFT_RATES = { morning: 0, day: 0, evening: 0, night: 0 };
+const DEFAULT_SHIFT_RATES = { dailyWeekday: 1500, dailyHoliday: 2500 };
 
 function normalizeShiftRates(raw) {
   const source = raw && typeof raw === "object" ? raw : {};
   return {
-    morning: clampNumber(source.morning, 0, 1_000_000, 0),
-    day: clampNumber(source.day, 0, 1_000_000, 0),
-    evening: clampNumber(source.evening, 0, 1_000_000, 0),
-    night: clampNumber(source.night, 0, 1_000_000, 0),
+    dailyWeekday: clampNumber(
+      source.dailyWeekday,
+      0,
+      1_000_000,
+      DEFAULT_SHIFT_RATES.dailyWeekday,
+    ),
+    dailyHoliday: clampNumber(
+      source.dailyHoliday,
+      0,
+      1_000_000,
+      DEFAULT_SHIFT_RATES.dailyHoliday,
+    ),
   };
 }
 
@@ -426,16 +429,13 @@ function cacheElements() {
     "overtime-cancel",
     "settings-dialog",
     "settings-form",
-    "set-night",
     "set-daily",
     "set-workday",
     "set-cancel",
     "rates-dialog",
     "rates-form",
-    "rate-morning",
-    "rate-day",
-    "rate-evening",
-    "rate-night",
+    "rate-daily-weekday",
+    "rate-daily-holiday",
     "rates-cancel",
     "redistribute-dialog",
     "redistribute-form",
@@ -1160,8 +1160,8 @@ function normalizeShifts(raw, total, role) {
   return shifts.map((value) => {
     const shift = String(value ?? "");
     if (!shift) return SHIFT.OFF;
-    if (shift === "П") {
-      return role === ROLE.DUTY ? SHIFT.DAILY : SHIFT.OFF;
+    if (shift === SHIFT.SUBSTITUTE && role === ROLE.DUTY) {
+      return SHIFT.DAILY;
     }
     if (role === ROLE.FIVE_DAY) return normalizeFiveDayShift(shift);
     return allowed.has(shift) ? shift : SHIFT.OFF;
@@ -1512,12 +1512,12 @@ function renderAll() {
 
 function shiftTooltip(role) {
   if (role === ROLE.EXTRA) {
-    return "Доп. инженер: правый клик — У (утро), Д (день), В (вечер), Отп (отпуск), переработка или выходной. Перетаскивание обменивает значения между датами.";
+    return "Доп. инженер: правый клик — С (суточная), П (подмена), Отп (отпуск), переработка или выходной. Перетаскивание обменивает значения между датами.";
   }
   if (role === ROLE.FIVE_DAY) {
-    return "5-дневный график: база — о (офис), у (удалёнка), в (выезд); дежурство — У, В, Н; Отп — отпуск. Если в дне уже есть база, дежурство добавляется второй частью: о/В; повторный выбор части в совмещённом дне убирает её. Правый клик → «Переработка» — часы сверх смены. Перетаскивание обменивает значения между датами.";
+    return "5-дневный график: база — о (офис), у (удалёнка), в (выезд); дополнительные дежурства — С (сутки) и П (подмена); Отп — отпуск. Если в дне уже есть база, дежурство добавляется второй частью: о/С; повторный выбор части в совмещённом дне убирает её. Правый клик → «Переработка» — часы сверх смены. Перетаскивание обменивает значения между датами.";
   }
-  return "Суточник: правый клик — С, Н, о (офис), у (удалёнка), в (выезд), Отп (отпуск), переработка или выходной. Праздники — обычные сутки, в ячейке обведены красной рамкой. Перетаскивание обменивает значения между датами.";
+  return "Суточник: правый клик — С, о (офис), у (удалёнка), в (выезд), Отп (отпуск), переработка или выходной. Праздники — обычные сутки, в ячейке обведены красной рамкой. Перетаскивание обменивает значения между датами.";
 }
 
 const OVERTIME_TINT =
@@ -1651,14 +1651,20 @@ function renderSchedule(issueDays) {
   }
 }
 
-function engineerShiftPay(engineer) {
+function engineerShiftPay(engineer, schedule) {
   const rates = normalizeShiftRates(state.settings.shiftRates);
-  return (
-    (Number(engineer.morningCount) || 0) * rates.morning +
-    (Number(engineer.dayCount) || 0) * rates.day +
-    (Number(engineer.eveningCount) || 0) * rates.evening +
-    (Number(engineer.nightCount) || 0) * rates.night
+  const { weekday, holiday } = extraDutyTotals(
+    engineer,
+    schedule.calendar,
+    schedule.year,
+    schedule.month,
+    state.settings.useHolidays,
   );
+  return {
+    weekday,
+    holiday,
+    pay: weekday * rates.dailyWeekday + holiday * rates.dailyHoliday,
+  };
 }
 
 function renderStats() {
@@ -1667,17 +1673,17 @@ function renderStats() {
   const norm = schedule.normHours;
   if (!engineers.length) {
     els.statsBody.innerHTML =
-      '<tr><td colspan="12" class="loading-cell">Нет сотрудников для статистики.</td></tr>';
+      '<tr><td colspan="11" class="loading-cell">Нет сотрудников для статистики.</td></tr>';
     els.statsSummary.textContent = "";
     return;
   }
 
+  const rates = normalizeShiftRates(state.settings.shiftRates);
   const totals = {
-    morning: 0,
-    day: 0,
-    evening: 0,
-    night: 0,
     daily: 0,
+    substitute: 0,
+    weekday: 0,
+    holiday: 0,
     vacation: 0,
     five: 0,
   };
@@ -1689,41 +1695,38 @@ function renderStats() {
     const overtime = engineer.totalHours - norm;
     const color = Math.abs(overtime) <= 2 ? "ok" : overtime > 2 ? "bad" : "warn";
     const five = engineer.officeCount + engineer.remoteCount + engineer.tripCount;
-    const pay = engineerShiftPay(engineer);
-    totals.morning += engineer.morningCount;
-    totals.day += engineer.dayCount;
-    totals.evening += engineer.eveningCount;
-    totals.night += engineer.nightCount;
+    const duty = engineerShiftPay(engineer, schedule);
     totals.daily += engineer.dailyCount;
+    totals.substitute += engineer.substituteCount;
+    totals.weekday += duty.weekday;
+    totals.holiday += duty.holiday;
     totals.vacation += engineer.vacationDays;
     totals.five += five;
     total += engineer.totalHours;
     totalOvertime += Number(engineer.overtimeTotal) || 0;
-    totalPay += pay;
+    totalPay += duty.pay;
     html += "<tr>";
     html += `<td>${esc(engineer.name)}</td>`;
-    html += `<td>${engineer.morningCount}</td>`;
-    html += `<td>${engineer.dayCount}</td>`;
-    html += `<td>${engineer.eveningCount}</td>`;
-    html += `<td>${engineer.nightCount}</td>`;
     html += `<td>${engineer.dailyCount}</td>`;
+    html += `<td>${engineer.substituteCount}</td>`;
+    html += `<td>${duty.weekday}</td>`;
+    html += `<td>${duty.holiday}</td>`;
     html += `<td>${engineer.vacationDays}</td>`;
     html += `<td>${five}</td>`;
     html += `<td class="${color}"><b>${Math.round(engineer.totalHours)}</b></td>`;
     html += `<td>${formatNumber(engineer.overtimeTotal || 0)}</td>`;
     html += `<td class="${color}"><b>${formatSigned(overtime)}</b></td>`;
-    html += `<td>${formatMoney(pay)}</td>`;
+    html += `<td>${formatMoney(duty.pay)}</td>`;
     html += "</tr>";
   }
   const deviation = total - norm * engineers.length;
   html +=
     '<tr class="stats-total">' +
     "<td>Итого</td>" +
-    `<td>${totals.morning}</td>` +
-    `<td>${totals.day}</td>` +
-    `<td>${totals.evening}</td>` +
-    `<td>${totals.night}</td>` +
     `<td>${totals.daily}</td>` +
+    `<td>${totals.substitute}</td>` +
+    `<td>${totals.weekday}</td>` +
+    `<td>${totals.holiday}</td>` +
     `<td>${totals.vacation}</td>` +
     `<td>${totals.five}</td>` +
     `<td><b>${Math.round(total)}</b></td>` +
@@ -1736,7 +1739,9 @@ function renderStats() {
     `Норма месяца: <b>${Math.round(norm)} ч</b> &nbsp;·&nbsp; ` +
     `Итого: <b>${Math.round(total)} ч</b> &nbsp;·&nbsp; ` +
     `Отклонение от нормы: <b>${formatSigned(deviation)} ч</b> &nbsp;·&nbsp; ` +
-    `Доплата по тарифам: <b>${formatMoney(totalPay)} ₽</b>`;
+    `Доплата по тарифам: <b>${formatMoney(totalPay)} ₽</b> ` +
+    `(сутки: ${formatMoney(rates.dailyWeekday)} ₽ в будни, ` +
+    `${formatMoney(rates.dailyHoliday)} ₽ в выходной и праздник)`;
 }
 
 function renderValidation(validation) {
@@ -1776,16 +1781,16 @@ function renderConditions() {
       "перерыв на обед 1 ч · ночной перерыв — от 30 мин до 2 ч (ст. 108 ТК РФ).";
   }
   if (five) {
-    text += ` 5-дневных сотрудников: ${five} — офис, удалёнка, выезд или дежурство У / Д / В / Н; совмещённый день показывается как о/В.`;
+    text += ` 5-дневных сотрудников: ${five} — офис, удалёнка, выезд, дополнительные сутки (С) или подмена (П); совмещённый день показывается как о/С.`;
   }
   if (extra) {
-    text += ` Доп. инженеров: ${extra} — У / Д / В ставятся вручную.`;
+    text += ` Доп. инженеров: ${extra} — С (сутки) или П (подмена), ставятся вручную.`;
   }
   text +=
     " Отпуск — Отп." +
     (state.settings.useHolidays ? " Праздничные дни обведены красной рамкой." : "") +
     " Переработка: правый клик по ячейке → «Переработка» (часы сверх смены) или общая сумма в карточке сотрудника." +
-    " Тарифы У / Д / В / Н задаются кнопкой «Тарифы» и дают колонку «Доплата».";
+    " Тариф за дополнительные сутки задаётся кнопкой «Тарифы»: будни и выходные с праздниками оплачиваются по разным ставкам и дают колонку «Доплата».";
   els.conditions.textContent = text;
 }
 
@@ -2543,7 +2548,6 @@ async function onEngineerDelete() {
 
 function openSettingsDialog() {
   if (state.readOnly) return;
-  els.setNight.value = formatNumber(state.settings.nightHours);
   els.setDaily.value = formatNumber(state.settings.dailyHours);
   els.setWorkday.value = formatNumber(state.settings.workdayHours);
   els.settingsDialog.showModal();
@@ -2555,7 +2559,6 @@ async function onSettingsSubmit(event) {
     els.settingsDialog.close();
     return;
   }
-  state.settings.nightHours = clampNumber(els.setNight.value, 1, 24, 15);
   state.settings.dailyHours = clampNumber(els.setDaily.value, 1, 24, 24);
   state.settings.workdayHours = clampNumber(els.setWorkday.value, 1, 24, 8);
   els.settingsDialog.close();
@@ -2569,10 +2572,8 @@ async function onSettingsSubmit(event) {
 function openRatesDialog() {
   if (state.readOnly) return;
   const rates = normalizeShiftRates(state.settings.shiftRates);
-  els.rateMorning.value = formatRate(rates.morning);
-  els.rateDay.value = formatRate(rates.day);
-  els.rateEvening.value = formatRate(rates.evening);
-  els.rateNight.value = formatRate(rates.night);
+  els.rateDailyWeekday.value = formatRate(rates.dailyWeekday);
+  els.rateDailyHoliday.value = formatRate(rates.dailyHoliday);
   els.ratesDialog.showModal();
 }
 
@@ -2583,10 +2584,8 @@ function onRatesSubmit(event) {
     return;
   }
   state.settings.shiftRates = normalizeShiftRates({
-    morning: els.rateMorning.value,
-    day: els.rateDay.value,
-    evening: els.rateEvening.value,
-    night: els.rateNight.value,
+    dailyWeekday: els.rateDailyWeekday.value,
+    dailyHoliday: els.rateDailyHoliday.value,
   });
   els.ratesDialog.close();
   renderAll();
@@ -2663,11 +2662,10 @@ function exportExcel() {
 
   const statsHeaders = [
     "Инженер",
-    "Утро",
-    "День",
-    "Вечер",
-    "Ночных",
     "Суточных",
+    "Подмен",
+    "Доп. сутки, будни",
+    "Доп. сутки, вых./праздн.",
     "Отпуск",
     "5-дн.",
     "Часов",
@@ -2686,11 +2684,10 @@ function exportExcel() {
   );
 
   const totals = {
-    morning: 0,
-    day: 0,
-    evening: 0,
-    night: 0,
     daily: 0,
+    substitute: 0,
+    weekday: 0,
+    holiday: 0,
     vacation: 0,
     five: 0,
     hours: 0,
@@ -2702,31 +2699,29 @@ function exportExcel() {
   for (const engineer of engineerStats(schedule.engineers)) {
     const overtime = engineer.totalHours - schedule.normHours;
     const five = engineer.officeCount + engineer.remoteCount + engineer.tripCount;
-    const pay = engineerShiftPay(engineer);
-    totals.morning += engineer.morningCount;
-    totals.day += engineer.dayCount;
-    totals.evening += engineer.eveningCount;
-    totals.night += engineer.nightCount;
+    const duty = engineerShiftPay(engineer, schedule);
     totals.daily += engineer.dailyCount;
+    totals.substitute += engineer.substituteCount;
+    totals.weekday += duty.weekday;
+    totals.holiday += duty.holiday;
     totals.vacation += engineer.vacationDays;
     totals.five += five;
     totals.hours += engineer.totalHours;
     totals.overtime += engineer.overtimeTotal || 0;
     totals.deviation += overtime;
-    totals.pay += pay;
+    totals.pay += duty.pay;
     const values = [
       engineer.name,
-      engineer.morningCount,
-      engineer.dayCount,
-      engineer.eveningCount,
-      engineer.nightCount,
       engineer.dailyCount,
+      engineer.substituteCount,
+      duty.weekday,
+      duty.holiday,
       engineer.vacationDays,
       five,
       engineer.totalHours,
       engineer.overtimeTotal || 0,
       overtime,
-      pay,
+      duty.pay,
     ];
     values.forEach((value, index) =>
       sheet.set(
@@ -2740,11 +2735,10 @@ function exportExcel() {
   }
   [
     "Итого",
-    totals.morning,
-    totals.day,
-    totals.evening,
-    totals.night,
     totals.daily,
+    totals.substitute,
+    totals.weekday,
+    totals.holiday,
     totals.vacation,
     totals.five,
     totals.hours,

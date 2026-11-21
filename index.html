@@ -71,11 +71,8 @@
       <div class="validation" id="validation" aria-live="polite"></div>
 
       <div class="legend" aria-label="Обозначения">
-        <span class="legend-item"><i class="swatch shift-night"></i>Ночная (Н)</span>
         <span class="legend-item"><i class="swatch shift-daily"></i>Суточная (С)</span>
-        <span class="legend-item"><i class="swatch shift-morning"></i>Утро (У)</span>
-        <span class="legend-item"><i class="swatch shift-day"></i>День (Д)</span>
-        <span class="legend-item"><i class="swatch shift-evening"></i>Вечер (В)</span>
+        <span class="legend-item"><i class="swatch shift-substitute"></i>Подмена (П)</span>
         <span class="legend-item"><i class="swatch shift-office"></i>Офис (о)</span>
         <span class="legend-item"><i class="swatch shift-remote"></i>Удалёнка (у)</span>
         <span class="legend-item"><i class="swatch shift-trip"></i>Выезд (в)</span>
@@ -93,11 +90,10 @@
           <thead>
             <tr>
               <th>Инженер</th>
-              <th>Утро</th>
-              <th>День</th>
-              <th>Вечер</th>
-              <th>Ночных</th>
               <th>Суточных</th>
+              <th>Подмен</th>
+              <th>Доп. будни</th>
+              <th>Доп. вых/празд</th>
               <th>Отпуск</th>
               <th>5-дн.</th>
               <th>Часов</th>
@@ -271,10 +267,6 @@
     <form id="settings-form">
       <h2>Настройки смен</h2>
       <label class="field">
-        <span>Ночная смена, ч</span>
-        <input id="set-night" type="number" min="1" max="24" step="0.5" required>
-      </label>
-      <label class="field">
         <span>Суточная смена, ч</span>
         <input id="set-daily" type="number" min="1" max="24" step="0.5" required>
       </label>
@@ -293,23 +285,15 @@
 
   <dialog class="dialog dialog--narrow" id="rates-dialog">
     <form id="rates-form">
-      <h2>Тарифы дежурств</h2>
-      <p class="dialog-hint">Ставка за одну смену в рублях. Доплата в статистике = количество смен × ставка.</p>
+      <h2>Тарифы дополнительных суток</h2>
+      <p class="dialog-hint">Ставка за одни сутки (С или П) у пятидневщика или доп. инженера. Смена суточника оплачивается по обычному графику и в доплату не входит.</p>
       <label class="field">
-        <span>Утро (У), ₽ за смену</span>
-        <input id="rate-morning" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+        <span>Сутки в будни, ₽</span>
+        <input id="rate-daily-weekday" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
       </label>
       <label class="field">
-        <span>День (Д), ₽ за смену</span>
-        <input id="rate-day" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
-      </label>
-      <label class="field">
-        <span>Вечер (В), ₽ за смену</span>
-        <input id="rate-evening" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
-      </label>
-      <label class="field">
-        <span>Ночь (Н), ₽ за смену</span>
-        <input id="rate-night" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
+        <span>Сутки в выходной или праздник, ₽</span>
+        <input id="rate-daily-holiday" type="number" min="0" max="1000000" step="0.01" inputmode="decimal">
       </label>
       <div class="dialog-actions">
         <span class="spacer"></span>

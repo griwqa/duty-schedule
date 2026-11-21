@@ -7,6 +7,7 @@
   --bg: #f3f5f9;
   --night: #4472c4;
   --daily: #ed7d31;
+  --substitute: #2f5597;
   --holiday: #c00000;
   --morning: #70ad47;
   --day: #ffc000;
@@ -446,6 +447,11 @@ body.busy {
 
 .shift-daily {
   background: var(--daily);
+  color: #fff;
+}
+
+.shift-substitute {
+  background: var(--substitute);
   color: #fff;
 }
 

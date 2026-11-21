@@ -21,6 +21,7 @@ export const ROLE_PREFIXES = {
 export const SHIFT = {
   NIGHT: "Н",
   DAILY: "С",
+  SUBSTITUTE: "П",
   OFF: "",
   MORNING: "У",
   DAY: "Д",
@@ -33,15 +34,9 @@ export const SHIFT = {
 
 export const DEFAULT_NAMES = ["Инженер A", "Инженер B", "Инженер C"];
 
-const DUTY_SHIFTS = new Set([SHIFT.NIGHT, SHIFT.DAILY]);
+const DUTY_SHIFTS = new Set([SHIFT.DAILY]);
 
-const DUPLICATE_SHIFTS = [
-  SHIFT.MORNING,
-  SHIFT.DAY,
-  SHIFT.EVENING,
-  SHIFT.NIGHT,
-  SHIFT.DAILY,
-];
+const DUPLICATE_SHIFTS = [SHIFT.DAILY, SHIFT.SUBSTITUTE];
 
 export const FIVE_DAY_BASE_SHIFTS = new Set([
   SHIFT.OFFICE,
@@ -49,11 +44,10 @@ export const FIVE_DAY_BASE_SHIFTS = new Set([
   SHIFT.TRIP,
 ]);
 
+// Дополнительные дежурства пятидневника: только полные сутки и подмена.
 export const FIVE_DAY_DUTY_SHIFTS = new Set([
-  SHIFT.MORNING,
-  SHIFT.DAY,
-  SHIFT.EVENING,
-  SHIFT.NIGHT,
+  SHIFT.DAILY,
+  SHIFT.SUBSTITUTE,
 ]);
 
 export function splitShift(shift) {
@@ -262,6 +256,7 @@ export function createEngineer(name, role = ROLE.DUTY, position = "", phone = ""
     totalHours: 0,
     nightCount: 0,
     dailyCount: 0,
+    substituteCount: 0,
     morningCount: 0,
     dayCount: 0,
     eveningCount: 0,
@@ -281,6 +276,7 @@ export function recalculateEngineer(
   engineer.totalHours = 0;
   engineer.nightCount = 0;
   engineer.dailyCount = 0;
+  engineer.substituteCount = 0;
   engineer.morningCount = 0;
   engineer.dayCount = 0;
   engineer.eveningCount = 0;
@@ -295,6 +291,9 @@ export function recalculateEngineer(
         engineer.totalHours += nightHours;
       } else if (shift === SHIFT.DAILY) {
         engineer.dailyCount += 1;
+        engineer.totalHours += dailyHours;
+      } else if (shift === SHIFT.SUBSTITUTE) {
+        engineer.substituteCount += 1;
         engineer.totalHours += dailyHours;
       } else if (shift === SHIFT.MORNING) {
         engineer.morningCount += 1;
@@ -723,7 +722,9 @@ export function validateSchedule(engineers) {
       if (coveredByDutyCheck) continue;
       issueDays.add(i + 1);
       issues.push(
-        `день ${i + 1}: дежурство ${code} у ${list.length} чел. — ${list
+        `день ${i + 1}: ${
+          code === SHIFT.SUBSTITUTE ? "подмена" : `дежурство ${code}`
+        } у ${list.length} чел. — ${list
           .map((engineer) => engineer.name)
           .join(", ")}`,
       );
@@ -852,11 +853,27 @@ export function engineerStats(engineers) {
   return engineers.filter((engineer) => engineer.role !== ROLE.EXTRA);
 }
 
+// Суточник отрабатывает сутки по своему графику — это обычная смена, не подработка.
+// Оплачиваются только сутки и подмена в рядах пятидневщиков и доп. инженеров.
+export function extraDutyTotals(engineer, calendar, year, month, useHolidays = true) {
+  const totals = { weekday: 0, holiday: 0 };
+  if (!engineer || !calendar || engineer.role === ROLE.DUTY) return totals;
+  for (let index = 0; index < engineer.shifts.length; index += 1) {
+    const parts = splitShift(engineer.shifts[index]);
+    if (!parts.some((part) => FIVE_DAY_DUTY_SHIFTS.has(part))) continue;
+    const iso = isoDate(year, month, index + 1);
+    const weekendOrHoliday =
+      calendar.isWeekend(iso) || (useHolidays && calendar.isHoliday(iso));
+    totals[weekendOrHoliday ? "holiday" : "weekday"] += 1;
+  }
+  return totals;
+}
+
 export function shiftHoursValue(shift, nightHours = 15, dailyHours = 24, workdayHours = 8) {
   let total = 0;
   for (const part of splitShift(shift)) {
     if (part === SHIFT.NIGHT) total += nightHours;
-    else if (part === SHIFT.DAILY) total += dailyHours;
+    else if (part === SHIFT.DAILY || part === SHIFT.SUBSTITUTE) total += dailyHours;
     else if (
       part === SHIFT.OFFICE ||
       part === SHIFT.REMOTE ||
